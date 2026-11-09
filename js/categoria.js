@@ -310,6 +310,7 @@ $("btn-guardar").addEventListener("click", async () => {
     return;
   }
   let archivo = null;
+  let etapa = "leer tu negocio";
   try {
     // 1. Leer el contador más reciente (puede haber cambiado en otro dispositivo).
     negocio = await leerNegocio(usuario.uid);
@@ -325,18 +326,21 @@ $("btn-guardar").addEventListener("click", async () => {
     const codigo = formatearCodigo(negocio.codigoCliente, numero);
 
     // 2. "Captura": la foto con el código encima.
+    etapa = "preparar la foto";
     await dibujar(codigo);
     $("codigo-preview").textContent = codigo;
     const blob = await new Promise((r) => $("lienzo").toBlob(r, "image/jpeg", 0.88));
     if (!blob) throw new Error("No se pudo generar la imagen");
 
     // 3. Subir a Storage con el nombre del código.
+    etapa = `subir la foto (${Math.round(blob.size / 1024)} KB)`;
     const rutaFoto = `catalogos/${usuario.uid}/${codigo}.jpg`;
     archivo = sRef(storage, rutaFoto);
     await uploadBytes(archivo, blob, metadatosFoto(codigo));
     const foto = await getDownloadURL(archivo);
 
     // 4. Guardar producto y sumar +1 a los contadores, todo en una sola escritura.
+    etapa = `guardar el producto ${codigo} (llevas ${negocio.totalItems}, sería el ${negocio.totalItems + 1})`;
     await update(ref(db), {
       [`productos/${usuario.uid}/${numero}`]: {
         numero, codigo, categoria: categoria.id, precio, foto, rutaFoto,
@@ -357,7 +361,12 @@ $("btn-guardar").addEventListener("click", async () => {
     toast(`Producto ${codigo} guardado`);
   } catch (err) {
     console.error(err);
-    msg.textContent = "No se pudo guardar el producto. Intenta de nuevo.";
+    // Mensaje con el paso y el código del error, para saber exactamente qué falló.
+    const codigoError = err?.code || err?.message || String(err);
+    const permiso = /permission|unauthorized/i.test(codigoError);
+    msg.textContent = `No se pudo ${etapa}.` +
+      (permiso ? " Firebase lo rechazó por las reglas de seguridad." : " Revisa tu conexión e intenta de nuevo.") +
+      ` [${codigoError}]`;
     if (archivo) deleteObject(archivo).catch(() => {});
   } finally {
     btn.disabled = false;
