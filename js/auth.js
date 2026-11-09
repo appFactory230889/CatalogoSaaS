@@ -81,6 +81,9 @@ document.querySelectorAll(".tab").forEach((t) =>
   t.addEventListener("click", () => cambiarModo(t.dataset.modo))
 );
 
+// Desde la página de presentación: ingresar.html?modo=registro abre "Crear cuenta".
+if (new URLSearchParams(location.search).get("modo") === "registro") cambiarModo("registro");
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = inputEmail.value.trim();

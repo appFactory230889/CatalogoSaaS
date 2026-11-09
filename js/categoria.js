@@ -447,11 +447,11 @@ async function borrarProducto(p) {
 
 // ---------- arranque ----------
 if (!configLista || !categoria) {
-  location.replace(configLista ? "app.html" : "index.html");
+  location.replace(configLista ? "app.html" : "ingresar.html");
 } else {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      location.replace("index.html");
+      location.replace("ingresar.html");
       return;
     }
     iniciar(user).catch((err) => {

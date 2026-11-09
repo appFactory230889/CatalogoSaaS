@@ -7,7 +7,10 @@ Sitio estático (HTML + CSS + JS) para **GitHub Pages**, con **Firebase** (Authe
 ## Estructura
 
 ```
-index.html            Login / registro (correo + contraseña, o Google)
+index.html            Página de presentación (pública): qué es, cómo funciona, planes, preguntas
+ingresar.html         Login / registro (correo + contraseña, o Google)
+catalogo.html         Catálogo público de cada negocio (?t=001, &c=ropa)
+admin.html            Panel de App Factory: pagos, planes y bloqueos (solo admins)
 app.html              Panel: nombre del negocio, código de cliente, uso 0/250, 5 categorías
 categoria.html        Productos de una categoría: subir foto con código, inhabilitar, borrar
 css/styles.css

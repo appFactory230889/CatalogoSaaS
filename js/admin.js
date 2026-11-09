@@ -352,10 +352,10 @@ async function iniciar(user) {
 }
 
 if (!configLista) {
-  location.replace("index.html");
+  location.replace("ingresar.html");
 } else {
   onAuthStateChanged(auth, (user) => {
-    if (!user) { location.replace("index.html"); return; }
+    if (!user) { location.replace("ingresar.html"); return; }
     iniciar(user).catch((err) => {
       console.error(err);
       $("vista-cargando").innerHTML = "<p>No se pudo cargar el panel. ¿Publicaste las reglas nuevas de Firebase?</p>";

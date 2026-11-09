@@ -3,70 +3,230 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>App Factory Catalog · Catálogo</title>
-  <meta name="description" content="Crea el catálogo de tu negocio y compártelo con tus clientas.">
+  <title>App Factory Catalog · Tu catálogo en línea para vender por WhatsApp</title>
+  <meta name="description" content="Crea el catálogo de tu negocio en minutos: sube fotos con código automático, precios por talla, tela o color, y compártelo por WhatsApp. Gratis hasta 250 productos.">
+  <meta property="og:title" content="App Factory Catalog · Tu catálogo en línea">
+  <meta property="og:description" content="Sube tus productos, compártelos por WhatsApp y vende más. Gratis hasta 250 productos.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="img/logo-catalogo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="img/logo-catalogo.png">
   <link rel="apple-touch-icon" href="img/logo-catalogo.png">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/inicio.css">
 </head>
-<body class="auth-page">
-  <main class="auth-card">
-    <div class="brand">
-      <img class="brand-logo" src="img/logo-catalogo.png" alt="" width="46" height="46">
-      <div>
-        <p class="brand-name">App Factory<span class="brand-sub">Catalog</span></p>
-        <p class="brand-tag">Tu tienda en un link</p>
+<body class="inicio">
+  <!-- Cabecera -->
+  <header class="inicio-cabecera">
+    <div class="inicio-contenedor inicio-barra">
+      <a class="brand" href="./">
+        <img class="brand-logo" src="img/logo-catalogo.png" alt="" width="46" height="46">
+        <span class="brand-name">App Factory<span class="brand-sub">Catalog</span></span>
+      </a>
+      <nav class="inicio-nav" aria-label="Secciones">
+        <a href="#como-funciona">Cómo funciona</a>
+        <a href="#planes">Planes</a>
+        <a href="#preguntas">Preguntas</a>
+      </nav>
+      <div class="inicio-acciones">
+        <a id="btn-ingresar" class="btn btn-fantasma" href="ingresar.html">Ingresar</a>
+        <a class="btn btn-primario solo-escritorio" href="ingresar.html?modo=registro">Crear catálogo gratis</a>
       </div>
     </div>
+  </header>
 
-    <div class="tabs" role="tablist">
-      <button type="button" class="tab active" data-modo="login" role="tab" aria-selected="true">Ingresar</button>
-      <button type="button" class="tab" data-modo="registro" role="tab" aria-selected="false">Crear cuenta</button>
-    </div>
+  <main>
+    <!-- Portada -->
+    <section class="hero">
+      <div class="inicio-contenedor hero-grid">
+        <div class="hero-texto">
+          <p class="etiqueta-hero">Para boutiques, emprendedoras y vendedoras por catálogo</p>
+          <h1>Tu catálogo en línea, listo para compartir por <span>WhatsApp</span></h1>
+          <p class="hero-sub">Sube la foto, pon el precio y comparte el link. Cada producto lleva su código automático, tus clientas eligen talla, tela o color y ven el precio al instante.</p>
+          <div class="hero-botones">
+            <a class="btn btn-primario btn-grande" href="ingresar.html?modo=registro">Crear mi catálogo gratis</a>
+            <a class="btn btn-fantasma btn-grande" href="#como-funciona">Ver cómo funciona</a>
+          </div>
+          <ul class="hero-garantias">
+            <li>✓ Gratis hasta 250 productos</li>
+            <li>✓ Sin instalar nada</li>
+            <li>✓ Funciona en cualquier celular</li>
+          </ul>
+        </div>
 
-    <form id="form-auth" novalidate>
-      <label class="campo">
-        <span>Correo electrónico</span>
-        <input id="email" type="email" inputmode="email" placeholder="tucorreo@ejemplo.com" autocomplete="email" required>
-      </label>
+        <!-- Maqueta de celular con un catálogo -->
+        <div class="hero-visual" aria-hidden="true">
+          <div class="telefono">
+            <div class="telefono-pantalla">
+              <div class="tel-cabecera">
+                <img src="img/logo-catalogo.png" alt="">
+                <strong>Boutique Carol</strong>
+              </div>
+              <div class="tel-chips">
+                <span class="activo">👗 Ropa</span><span>👠 Zapatos</span><span>💍 Joyería</span>
+              </div>
+              <div class="tel-buscar">Buscar por código, ej. 0012</div>
+              <div class="tel-grid">
+                <div class="tel-producto"><div class="tel-foto f1"><span>001-0012</span></div><b>001-0012</b><em>desde $14.00</em></div>
+                <div class="tel-producto"><div class="tel-foto f2"><span>001-0011</span></div><b>001-0011</b><em>$18.00</em></div>
+                <div class="tel-producto"><div class="tel-foto f3"><span>001-0010</span></div><b>001-0010</b><em>desde $12.50</em></div>
+                <div class="tel-producto"><div class="tel-foto f4"><span>001-0009</span></div><b>001-0009</b><em>$22.00</em></div>
+              </div>
+            </div>
+          </div>
+          <div class="burbuja burbuja-1">📲 Link compartido por WhatsApp</div>
+          <div class="burbuja burbuja-2">Talla M · Piel de durazno · <b>$16.00</b></div>
+        </div>
+      </div>
+    </section>
 
-      <label class="campo">
-        <span>Contraseña</span>
-        <input id="password" type="password" minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required>
-      </label>
+    <!-- Cómo funciona -->
+    <section id="como-funciona" class="seccion">
+      <div class="inicio-contenedor">
+        <h2 class="titulo-seccion-inicio">Así de fácil</h2>
+        <p class="sub-seccion">En tres pasos tu catálogo está en línea.</p>
+        <ol class="pasos">
+          <li>
+            <span class="paso-numero">1</span>
+            <h3>Sube la foto</h3>
+            <p>Elígela de tu galería. El sistema le pone un <strong>código único</strong> (ej. 001-0012) para que tus clientas te pidan exactamente ese producto.</p>
+          </li>
+          <li>
+            <span class="paso-numero">2</span>
+            <h3>Pon precios y opciones</h3>
+            <p>Precios por <strong>talla</strong>, <strong>tela</strong>, <strong>color</strong> o <strong>material</strong>, como en las grandes tiendas en línea. Marca lo que está agotado con un toque.</p>
+          </li>
+          <li>
+            <span class="paso-numero">3</span>
+            <h3>Comparte el link</h3>
+            <p>Envía tu catálogo completo o <strong>solo una categoría</strong> por WhatsApp, Instagram o Facebook. Tus clientas no necesitan crear cuenta.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
 
-      <label class="campo" id="campo-confirmar" hidden>
-        <span>Confirmar contraseña</span>
-        <input id="password2" type="password" minlength="6" placeholder="Repite tu contraseña" autocomplete="new-password">
-      </label>
+    <!-- Funciones -->
+    <section class="seccion seccion-suave">
+      <div class="inicio-contenedor">
+        <h2 class="titulo-seccion-inicio">Todo lo que tu negocio necesita</h2>
+        <div class="funciones">
+          <div class="funcion"><span>🏷️</span><h3>Código automático</h3><p>Cada foto lleva su código, discreto, sin tapar el producto. Tus clientas lo buscan en el catálogo.</p></div>
+          <div class="funcion"><span>🎨</span><h3>Presentaciones y precios</h3><p>Un mismo producto en varias telas, colores o materiales, cada uno con su precio por talla.</p></div>
+          <div class="funcion"><span>📏</span><h3>Guía de tallas</h3><p>En zapatos, tus clientas ven el largo del pie en cm de cada talla. Menos cambios y devoluciones.</p></div>
+          <div class="funcion"><span>⬇️</span><h3>Descarga las imágenes</h3><p>Baja las fotos con su código para publicarlas en tus redes sociales y estados de WhatsApp.</p></div>
+          <div class="funcion"><span>🔎</span><h3>Filtros y búsqueda</h3><p>Por tipo de producto (tacones, sandalias, anillos…) y por código. Tus clientas encuentran rápido lo que buscan.</p></div>
+          <div class="funcion"><span>✏️</span><h3>Edita cuando quieras</h3><p>Cambia precios, agrega tallas o marca un color como agotado sin volver a subir el producto.</p></div>
+        </div>
+      </div>
+    </section>
 
-      <button type="button" id="btn-olvide" class="enlace">¿Olvidaste tu contraseña?</button>
+    <!-- Categorías -->
+    <section class="seccion">
+      <div class="inicio-contenedor">
+        <h2 class="titulo-seccion-inicio">Hecho para lo que vendes</h2>
+        <p class="sub-seccion">Cada categoría trae sus propias especificaciones, y tú las personalizas.</p>
+        <div class="categorias-inicio">
+          <div class="cat-inicio" style="--acento:#E8618C"><span>👗</span><h3>Ropa</h3><p>Telas y tallas XS–XXL</p></div>
+          <div class="cat-inicio" style="--acento:#8B5CF6"><span>👠</span><h3>Zapatos</h3><p>Colores, tallas 35–41 con cm, tacón y calce</p></div>
+          <div class="cat-inicio" style="--acento:#D4A017"><span>💍</span><h3>Joyería</h3><p>Materiales y medidas de anillos y cadenas</p></div>
+          <div class="cat-inicio" style="--acento:#0EA5E9"><span>🧸</span><h3>Niñ@s</h3><p>Ropa, juguetes y más, por edad</p></div>
+          <div class="cat-inicio" style="--acento:#10B981"><span>🏠</span><h3>Hogar</h3><p>Diseños, tamaños y medidas</p></div>
+        </div>
+      </div>
+    </section>
 
-      <p id="mensaje" class="mensaje" role="alert"></p>
+    <!-- Planes -->
+    <section id="planes" class="seccion seccion-suave">
+      <div class="inicio-contenedor">
+        <h2 class="titulo-seccion-inicio">Planes</h2>
+        <p class="sub-seccion">Empieza gratis. Cuando tu negocio crezca, amplía tu plan.</p>
+        <div class="planes-inicio">
+          <div class="plan-inicio">
+            <h3>Gratis</h3>
+            <p class="precio-plan">$0 <small>para siempre</small></p>
+            <ul>
+              <li>Hasta <strong>250 productos</strong></li>
+              <li>Las 5 categorías con sus especificaciones</li>
+              <li>Código automático en cada foto</li>
+              <li>Compartir catálogo completo o por categoría</li>
+              <li>Descarga de imágenes para redes</li>
+            </ul>
+            <a class="btn btn-fantasma" href="ingresar.html?modo=registro">Crear mi catálogo gratis</a>
+          </div>
+          <div class="plan-inicio destacado">
+            <span class="cinta">Para negocios que crecen</span>
+            <h3>Premium</h3>
+            <p class="precio-plan" id="precio-premium">Consultar</p>
+            <ul>
+              <li>Todo lo del plan Gratis</li>
+              <li>Hasta <strong>1,000 productos</strong> o más</li>
+              <li>Pedido por WhatsApp desde tu catálogo <small>(próximamente)</small></li>
+              <li>Tu logo y tu marca en el catálogo <small>(próximamente)</small></li>
+              <li>Atención prioritaria</li>
+            </ul>
+            <a class="btn btn-primario" id="btn-premium" target="_blank" rel="noopener">Quiero Premium</a>
+          </div>
+        </div>
+        <p class="nota-planes">Pagos por transferencia bancaria en El Salvador. Pronto: pago con tarjeta para otros países.</p>
+      </div>
+    </section>
 
-      <button type="submit" id="btn-submit" class="btn btn-primario">Ingresar</button>
-    </form>
+    <!-- Preguntas -->
+    <section id="preguntas" class="seccion">
+      <div class="inicio-contenedor inicio-angosto">
+        <h2 class="titulo-seccion-inicio">Preguntas frecuentes</h2>
+        <details class="pregunta">
+          <summary>¿Tengo que instalar una aplicación?</summary>
+          <p>No. Funciona desde el navegador de tu celular o computadora. Si quieres, puedes agregarla a la pantalla de inicio de tu celular como una app.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Mis clientas necesitan crear una cuenta?</summary>
+          <p>No. Solo abren el link que les compartes y ven tu catálogo: fotos, precios, tallas y opciones.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Qué pasa si llego a los 250 productos?</summary>
+          <p>Te avisamos antes de llegar. Puedes borrar productos que ya no vendes para liberar espacio, o ampliar tu plan a Premium. Nunca se borra nada sin que tú lo decidas.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Puedo compartir solo una parte de mi catálogo?</summary>
+          <p>Sí. Cada categoría tiene su propio botón para compartir: por ejemplo, solo tus zapatos o solo tu joyería.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Cómo pago el plan Premium?</summary>
+          <p>Por transferencia bancaria. Desde tu panel subes la foto del comprobante y activamos tu plan. Cualquier duda, escríbenos por WhatsApp.</p>
+        </details>
+        <details class="pregunta">
+          <summary>¿Puedo descargar las fotos para mis redes?</summary>
+          <p>Sí, tanto tú como tus clientas pueden descargar cada imagen con su código para publicarla en Instagram, Facebook o estados de WhatsApp.</p>
+        </details>
+      </div>
+    </section>
 
-    <div class="separador"><span>o</span></div>
-
-    <button type="button" id="btn-google" class="btn btn-google">
-      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/>
-        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/>
-        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
-        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/>
-      </svg>
-      Continuar con Google
-    </button>
+    <!-- Llamado final -->
+    <section class="cta-final">
+      <div class="inicio-contenedor">
+        <h2>Tu catálogo puede estar en línea hoy mismo</h2>
+        <p>Regístrate gratis, sube tus primeros productos y comparte el link con tus clientas.</p>
+        <a class="btn btn-grande btn-compartir" href="ingresar.html?modo=registro">Crear mi catálogo gratis</a>
+      </div>
+    </section>
   </main>
 
-  <footer class="pie">
-    <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+  <footer class="inicio-pie">
+    <div class="inicio-contenedor inicio-pie-grid">
+      <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+      <nav aria-label="Enlaces">
+        <a href="ingresar.html">Ingresar</a>
+        <a id="link-contacto" target="_blank" rel="noopener">Contacto por WhatsApp</a>
+      </nav>
+      <p>© <span id="anio"></span> App Factory · El Salvador</p>
+    </div>
   </footer>
 
-  <script type="module" src="js/auth.js"></script>
+  <a class="cta-flotante" href="ingresar.html?modo=registro">Crear mi catálogo gratis</a>
+
+  <script type="module" src="js/inicio.js"></script>
 </body>
 </html>

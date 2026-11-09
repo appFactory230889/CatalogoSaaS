@@ -148,15 +148,15 @@ $("form-negocio").addEventListener("submit", async (e) => {
 
 $("btn-salir").addEventListener("click", async () => {
   await signOut(auth);
-  location.replace("index.html");
+  location.replace("ingresar.html");
 });
 
 if (!configLista) {
-  location.replace("index.html");
+  location.replace("ingresar.html");
 } else {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      location.replace("index.html");
+      location.replace("ingresar.html");
       return;
     }
     usuario = user;

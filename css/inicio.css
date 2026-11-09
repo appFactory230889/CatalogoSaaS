@@ -1,0 +1,177 @@
+/* Página de presentación (index.html). Usa los colores y botones de styles.css. */
+
+.inicio { background: var(--superficie); }
+.inicio-contenedor { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.inicio-angosto { max-width: 760px; }
+html { scroll-behavior: smooth; }
+.inicio section[id] { scroll-margin-top: 80px; }
+
+/* ---------- Cabecera ---------- */
+.inicio-cabecera {
+  position: sticky; top: 0; z-index: 20;
+  background: rgba(255, 255, 255, .92); backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--borde);
+}
+.inicio-barra { display: flex; align-items: center; gap: 20px; height: 68px; }
+.inicio-barra .brand { text-decoration: none; color: inherit; }
+.inicio-nav { display: flex; gap: 22px; margin-left: auto; }
+.inicio-nav a { color: var(--texto-suave); text-decoration: none; font-weight: 600; font-size: .92rem; }
+.inicio-nav a:hover { color: var(--primario); }
+.inicio-acciones { display: flex; gap: 10px; }
+.inicio-acciones .btn-primario { width: auto; }
+@media (max-width: 860px) {
+  .inicio-nav { display: none; }
+  .inicio-acciones { margin-left: auto; }
+  .solo-escritorio { display: none; }
+}
+
+.btn-grande { padding: 15px 24px; font-size: 1rem; border-radius: 12px; }
+.hero-botones .btn-primario { width: auto; }
+
+/* ---------- Portada ---------- */
+.hero {
+  padding: 64px 0 72px;
+  background:
+    radial-gradient(ellipse at 10% 0%, #DDE4F3 0%, transparent 55%),
+    radial-gradient(ellipse at 95% 90%, var(--acento-suave) 0%, transparent 50%),
+    var(--bg);
+  overflow: hidden;
+}
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 48px; align-items: center; }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: minmax(0, 1fr); gap: 40px; } .hero { padding-top: 40px; } }
+.etiqueta-hero {
+  display: inline-block; font-size: .8rem; font-weight: 700; color: var(--primario);
+  background: var(--primario-suave); padding: 6px 12px; border-radius: 99px; margin-bottom: 16px;
+}
+.hero h1 {
+  font-family: "Montserrat", sans-serif; font-weight: 800;
+  font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.08; letter-spacing: -.02em; margin: 0 0 18px;
+  color: var(--primario);
+}
+.hero h1 span { color: #1EA855; }
+.hero-sub { font-size: 1.1rem; color: var(--texto-suave); max-width: 560px; }
+.hero-botones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+.hero-garantias { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: .9rem; font-weight: 600; color: var(--texto-suave); }
+
+/* Maqueta del celular */
+.hero-visual { position: relative; display: flex; justify-content: center; }
+.telefono {
+  width: 290px; padding: 12px; border-radius: 38px; background: #141C33;
+  box-shadow: 0 30px 70px rgba(20, 28, 51, .35); transform: rotate(-3deg);
+}
+.telefono-pantalla { background: var(--bg); border-radius: 28px; padding: 14px 12px 18px; min-height: 520px; }
+.tel-cabecera { display: flex; align-items: center; gap: 8px; font-size: .85rem; margin-bottom: 10px; }
+.tel-cabecera img { width: 26px; height: 26px; }
+.tel-chips { display: flex; gap: 6px; margin-bottom: 8px; }
+.tel-chips span { font-size: .62rem; font-weight: 700; padding: 4px 8px; border-radius: 99px; background: #fff; border: 1px solid var(--borde); white-space: nowrap; }
+.tel-chips .activo { background: var(--primario); color: #fff; border-color: var(--primario); }
+.tel-buscar { font-size: .62rem; color: #9AA1B2; background: #fff; border: 1px solid var(--borde); border-radius: 8px; padding: 6px 8px; margin-bottom: 10px; }
+.tel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tel-producto { background: #fff; border: 1px solid var(--borde); border-radius: 10px; overflow: hidden; font-size: .62rem; display: flex; flex-direction: column; }
+.tel-producto b { font-family: "Montserrat", sans-serif; color: var(--primario); padding: 6px 7px 0; }
+.tel-producto em { font-style: normal; font-weight: 700; padding: 2px 7px 7px; }
+.tel-foto { aspect-ratio: 3 / 4; display: grid; place-items: center; }
+.tel-foto span { color: rgba(255,255,255,.9); font-weight: 700; font-size: .6rem; text-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.f1 { background: linear-gradient(160deg, #C7B5F2, #8C6FD8); }
+.f2 { background: linear-gradient(160deg, #F6C2C9, #E07A8A); }
+.f3 { background: linear-gradient(160deg, #F9D9A6, #E8A04E); }
+.f4 { background: linear-gradient(160deg, #A9D8E8, #4F9DBF); }
+.burbuja {
+  position: absolute; background: #fff; border-radius: 14px; padding: 10px 14px; font-size: .82rem; font-weight: 600;
+  box-shadow: 0 12px 30px rgba(20, 28, 51, .18); white-space: nowrap;
+}
+.hero-visual { padding-top: 26px; }
+.burbuja-1 { top: 0; left: 4%; }
+.burbuja-2 { bottom: 60px; right: 0; }
+.burbuja-2 b { color: #D9480F; }
+@media (max-width: 520px) {
+  .telefono { width: 250px; }
+  .telefono-pantalla { min-height: 440px; }
+  .burbuja { font-size: .72rem; }
+  .burbuja-1 { left: 0; top: 0; }
+  .burbuja-2 { right: -4px; }
+}
+
+/* ---------- Secciones ---------- */
+.seccion { padding: 72px 0; }
+.seccion-suave { background: var(--bg); }
+.titulo-seccion-inicio {
+  font-family: "Montserrat", sans-serif; font-weight: 800; text-align: center;
+  font-size: clamp(1.6rem, 3.5vw, 2.2rem); color: var(--primario); margin: 0 0 8px; letter-spacing: -.01em;
+}
+.sub-seccion { text-align: center; color: var(--texto-suave); margin: 0 auto 36px; max-width: 560px; }
+
+.pasos { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; counter-reset: none; }
+.pasos li { background: var(--superficie); border: 1px solid var(--borde); border-radius: 18px; padding: 24px; }
+.paso-numero {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primario), #2B3F73); color: #fff; font-weight: 800; font-family: "Montserrat", sans-serif;
+}
+.pasos h3, .funcion h3, .cat-inicio h3 { margin: 14px 0 6px; font-size: 1.08rem; }
+.pasos p, .funcion p, .cat-inicio p { color: var(--texto-suave); font-size: .93rem; }
+
+.funciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 32px; }
+.funcion { background: var(--superficie); border-radius: 16px; padding: 22px; border: 1px solid var(--borde); }
+.funcion span { font-size: 1.7rem; }
+
+.categorias-inicio { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+.cat-inicio { border-radius: 16px; padding: 20px; border: 1px solid var(--borde); border-top: 4px solid var(--acento); }
+.cat-inicio span {
+  display: grid; place-items: center; width: 46px; height: 46px; border-radius: 12px; font-size: 1.5rem;
+  background: color-mix(in srgb, var(--acento) 14%, #fff);
+}
+
+/* ---------- Planes ---------- */
+.planes-inicio { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 820px; margin: 0 auto; }
+.plan-inicio {
+  position: relative; background: var(--superficie); border: 1px solid var(--borde); border-radius: 20px;
+  padding: 28px; display: flex; flex-direction: column;
+}
+.plan-inicio h3 { margin: 0; font-family: "Montserrat", sans-serif; font-size: 1.2rem; color: var(--primario); }
+.precio-plan { font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 2.2rem; margin: 8px 0 14px; }
+.precio-plan small { font-family: "Plus Jakarta Sans", sans-serif; font-size: .9rem; font-weight: 500; color: var(--texto-suave); }
+.plan-inicio ul { list-style: none; padding: 0; margin: 0 0 22px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+.plan-inicio li { padding-left: 26px; position: relative; font-size: .93rem; }
+.plan-inicio li::before { content: "✓"; position: absolute; left: 0; color: #1EA855; font-weight: 800; }
+.plan-inicio li small { color: var(--texto-suave); }
+.plan-inicio .btn { width: 100%; }
+.plan-inicio.destacado { border: 2px solid var(--primario); box-shadow: var(--sombra); }
+.cinta {
+  position: absolute; top: -13px; left: 28px; background: var(--acento); color: #1B1205;
+  font-size: .75rem; font-weight: 800; padding: 4px 12px; border-radius: 99px;
+}
+.nota-planes { text-align: center; color: var(--texto-suave); font-size: .85rem; margin-top: 20px; }
+
+/* ---------- Preguntas ---------- */
+.pregunta { border-bottom: 1px solid var(--borde); padding: 4px 0; }
+.pregunta summary {
+  cursor: pointer; list-style: none; font-weight: 700; padding: 16px 32px 16px 0; position: relative;
+}
+.pregunta summary::-webkit-details-marker { display: none; }
+.pregunta summary::after { content: "+"; position: absolute; right: 4px; top: 12px; font-size: 1.4rem; color: var(--primario); transition: transform .2s; }
+.pregunta[open] summary::after { transform: rotate(45deg); }
+.pregunta p { color: var(--texto-suave); padding: 0 0 16px; }
+
+/* ---------- Llamado final y pie ---------- */
+.cta-final {
+  text-align: center; padding: 64px 0;
+  background: linear-gradient(135deg, var(--primario), #2B3F73); color: #fff;
+}
+.cta-final h2 { font-family: "Montserrat", sans-serif; font-size: clamp(1.5rem, 3.5vw, 2.1rem); margin: 0 0 10px; }
+.cta-final p { opacity: .85; margin-bottom: 26px; }
+.inicio-pie { padding: 30px 0 90px; background: var(--bg); }
+.inicio-pie-grid { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; font-size: .85rem; color: var(--texto-suave); }
+.inicio-pie-grid img { width: 170px; height: auto; mix-blend-mode: multiply; }
+.inicio-pie nav { display: flex; gap: 18px; }
+.inicio-pie a { color: var(--texto-suave); font-weight: 600; text-decoration: none; }
+.inicio-pie a:hover { color: var(--primario); }
+
+/* Botón fijo en celular */
+.cta-flotante { display: none; }
+@media (max-width: 860px) {
+  .cta-flotante {
+    display: block; position: fixed; left: 16px; right: 16px; bottom: 14px; z-index: 30;
+    text-align: center; padding: 15px; border-radius: 14px; font-weight: 700; text-decoration: none;
+    background: var(--primario); color: #fff; box-shadow: 0 10px 30px rgba(20, 28, 51, .35);
+  }
+}

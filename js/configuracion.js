@@ -214,10 +214,10 @@ async function iniciar(user) {
 }
 
 if (!configLista || !categoria) {
-  location.replace(configLista ? "app.html" : "index.html");
+  location.replace(configLista ? "app.html" : "ingresar.html");
 } else {
   onAuthStateChanged(auth, (user) => {
-    if (!user) { location.replace("index.html"); return; }
+    if (!user) { location.replace("ingresar.html"); return; }
     iniciar(user).catch((err) => {
       console.error(err);
       $("vista-cargando").innerHTML = "<p>No se pudo cargar la configuración. Revisa tu conexión o las reglas de Firebase.</p>";
