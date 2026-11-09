@@ -18,7 +18,6 @@
       <img class="brand-logo" src="img/logo-escudo.png" alt="" width="42" height="46">
       <p class="brand-name" id="titulo-tienda">Catálogo</p>
     </div>
-    <button type="button" id="btn-compartir" class="btn btn-fantasma" hidden>Compartir</button>
   </header>
 
   <main class="contenido">
@@ -32,12 +31,33 @@
       <p id="error-texto">No encontramos este catálogo. Revisa el link que te compartieron.</p>
     </section>
 
-    <section id="vista-catalogo" hidden>
-      <h1 id="nombre-tienda" class="saludo"></h1>
-      <p class="sub" id="resumen"></p>
+    <!-- Portada: categorías del negocio -->
+    <section id="vista-portada" hidden>
+      <div class="cabecera-publica">
+        <div>
+          <h1 id="nombre-tienda" class="saludo"></h1>
+          <p class="sub" id="resumen"></p>
+        </div>
+        <button type="button" id="btn-compartir-todo" class="btn btn-compartir"></button>
+      </div>
+      <div id="grid-categorias" class="grid-categorias"></div>
+    </section>
+
+    <!-- Productos de una categoría -->
+    <section id="vista-categoria" hidden>
+      <button type="button" id="btn-volver" class="enlace volver" hidden>← Todas las categorías</button>
+      <div class="cabecera-publica">
+        <div class="cabecera-categoria">
+          <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
+          <div>
+            <h1 id="cat-nombre"></h1>
+            <p class="sub" id="cat-resumen"></p>
+          </div>
+        </div>
+        <button type="button" id="btn-compartir-categoria" class="btn btn-compartir"></button>
+      </div>
 
       <div class="filtros">
-        <div id="chips-categorias" class="chips"></div>
         <input id="buscar" type="search" inputmode="numeric" placeholder="Buscar por código, ej. 0012" aria-label="Buscar por código">
       </div>
 
@@ -70,6 +90,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="js/aviso-carga.js"></script>
   <script type="module" src="js/catalogo.js"></script>
 </body>
 </html>

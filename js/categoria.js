@@ -9,6 +9,7 @@ import {
   asegurarConfigRopa, leerPresentaciones, tieneVariosPrecios
 } from "./datos.js";
 import { crearEditorPresentaciones } from "./presentaciones.js";
+import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
 import { dibujarCodigo } from "./marca-codigo.js";
 
 const $ = (id) => document.getElementById(id);
@@ -125,6 +126,14 @@ async function iniciar(user) {
   $("cat-nombre").textContent = categoria.nombre;
   document.title = `${categoria.nombre} · App Factory`;
   pintarUso();
+  const link = linkCatalogo(negocio.codigoCliente, categoria.id);
+  $("btn-ver-categoria").href = link;
+  $("btn-compartir-categoria").innerHTML = `${ICONO_COMPARTIR} Compartir ${categoria.nombre}`;
+  $("btn-compartir-categoria").addEventListener("click", () => compartirLink({
+    url: link,
+    titulo: `${categoria.nombre} · ${negocio.nombre}`,
+    texto: `Mira ${categoria.nombre} en el catálogo de ${negocio.nombre}`
+  }, toast));
   if (usaPresentaciones) {
     configRopa = await asegurarConfigRopa(user.uid);
     editor = crearEditorPresentaciones({ contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast });

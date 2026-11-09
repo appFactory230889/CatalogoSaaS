@@ -29,11 +29,17 @@
     </section>
 
     <section id="vista-categoria" hidden>
-      <div class="cabecera-categoria">
-        <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
-        <div>
-          <h1 id="cat-nombre"></h1>
-          <p class="sub" id="cat-conteo"></p>
+      <div class="cabecera-publica">
+        <div class="cabecera-categoria">
+          <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
+          <div>
+            <h1 id="cat-nombre"></h1>
+            <p class="sub" id="cat-conteo"></p>
+          </div>
+        </div>
+        <div class="acciones-compartir">
+          <a id="btn-ver-categoria" class="btn btn-fantasma" target="_blank" rel="noopener">Ver como clienta</a>
+          <button type="button" id="btn-compartir-categoria" class="btn btn-compartir"></button>
         </div>
       </div>
 
@@ -104,6 +110,7 @@
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
+  <script src="js/aviso-carga.js"></script>
   <script type="module" src="js/categoria.js"></script>
 </body>
 </html>

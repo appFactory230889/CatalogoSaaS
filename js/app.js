@@ -5,6 +5,7 @@ import {
 import {
   CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente
 } from "./datos.js";
+import { linkCatalogo, compartirLink } from "./compartir.js";
 
 const $ = (id) => document.getElementById(id);
 const vistas = {
@@ -77,22 +78,11 @@ function pintarUso(negocio) {
 }
 
 function prepararCompartir(negocio) {
-  const url = new URL(`catalogo.html?t=${formatearCliente(negocio.codigoCliente)}`, location.href).href;
+  const url = linkCatalogo(negocio.codigoCliente);
   $("link-catalogo").textContent = url;
   $("btn-ver-catalogo").href = url;
-  $("btn-compartir").onclick = async () => {
-    const datos = { title: negocio.nombre, text: `Mira el catálogo de ${negocio.nombre}`, url };
-    if (navigator.share) {
-      try { await navigator.share(datos); } catch {}
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      toast("Link copiado. Pégalo en WhatsApp o donde quieras.");
-    } catch {
-      prompt("Copia este link:", url);
-    }
-  };
+  $("btn-compartir").onclick = () =>
+    compartirLink({ url, titulo: negocio.nombre, texto: `Mira el catálogo de ${negocio.nombre}` }, toast);
 }
 
 async function mostrarPanel(negocio) {

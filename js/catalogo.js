@@ -1,5 +1,7 @@
 // Catálogo PÚBLICO de un negocio: solo lectura, sin iniciar sesión.
-// Link: catalogo.html?t=001  (t = código de cliente)
+// Links:
+//   catalogo.html?t=001          catálogo completo: portada con las categorías
+//   catalogo.html?t=001&c=ropa   SOLO los productos de esa categoría (sin acceso a las demás)
 // Las reglas de Firebase solo permiten LEER aquí; nadie puede modificar nada desde esta página.
 import { db, configLista, ref, get } from "./firebase.js";
 import {
@@ -7,11 +9,14 @@ import {
   leerConfigRopa, leerPresentaciones, tieneVariosPrecios
 } from "./datos.js";
 import { crearSelectorPresentaciones } from "./presentaciones.js";
+import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
 
 const $ = (id) => document.getElementById(id);
 
 let productos = [];
-let filtroCategoria = "todas";
+let codigoCliente = 0;
+let nombreTienda = "Catálogo";
+let categoriaActual = null;
 let configRopa = { telas: [], tallas: [] };
 const selector = crearSelectorPresentaciones({
   contTelas: $("detalle-telas"), contTallas: $("detalle-tallas"),
@@ -20,7 +25,7 @@ const selector = crearSelectorPresentaciones({
 });
 
 function mostrar(vista) {
-  ["cargando", "error", "catalogo"].forEach((v) => ($(`vista-${v}`).hidden = v !== vista));
+  ["cargando", "error", "portada", "categoria"].forEach((v) => ($(`vista-${v}`).hidden = v !== vista));
 }
 
 function error(texto) {
@@ -39,7 +44,7 @@ function toast(texto) {
 
 async function cargar() {
   const t = new URLSearchParams(location.search).get("t") || "";
-  const codigoCliente = parseInt(t, 10);
+  codigoCliente = parseInt(t, 10);
   if (!/^\d{1,6}$/.test(t) || !codigoCliente) return error();
 
   const uid = (await get(ref(db, `codigosCliente/${codigoCliente}`))).val();
@@ -68,46 +73,85 @@ async function cargar() {
   });
   productos = lista.sort((a, b) => b.numero - a.numero);
 
-  document.title = `${nombre} · Catálogo`;
+  nombreTienda = nombre;
   $("titulo-tienda").textContent = nombre;
   $("nombre-tienda").textContent = nombre;
-  $("resumen").textContent = productos.length
-    ? `${productos.length} producto${productos.length === 1 ? "" : "s"} disponibles`
-    : "Este catálogo todavía no tiene productos.";
-  document.querySelector(".filtros").hidden = productos.length === 0;
-  pintarChips();
-  pintarGrid();
-  mostrar("catalogo");
+
+  // Si el link trae una categoría, se muestra SOLO esa (sin botón para ver las demás).
+  const inicial = categoriaPorId(new URLSearchParams(location.search).get("c"));
+  history.replaceState({ c: inicial?.id ?? null, directo: true }, "");
+  if (inicial) mostrarCategoria(inicial, false);
+  else mostrarPortada();
 }
 
-function pintarChips() {
-  const cont = $("chips-categorias");
-  cont.innerHTML = "";
-  const presentes = CATEGORIAS.filter((c) => productos.some((p) => p.categoria === c.id));
-  if (presentes.length < 2) return; // con una sola categoría no hace falta filtrar
-  [{ id: "todas", nombre: "Todas", icono: "✨" }, ...presentes].forEach((c) => {
+const cuantos = (catId) => productos.filter((p) => p.categoria === catId).length;
+const plural = (n) => `${n} producto${n === 1 ? "" : "s"}`;
+
+function mostrarPortada() {
+  categoriaActual = null;
+  document.title = `${nombreTienda} · Catálogo`;
+  const presentes = CATEGORIAS.filter((c) => cuantos(c.id) > 0);
+  $("resumen").textContent = productos.length
+    ? "Elige una categoría para ver sus productos."
+    : "Este catálogo todavía no tiene productos.";
+  $("btn-compartir-todo").hidden = productos.length === 0;
+
+  const grid = $("grid-categorias");
+  grid.innerHTML = "";
+  presentes.forEach((c) => {
     const b = document.createElement("button");
     b.type = "button";
-    b.className = "chip" + (filtroCategoria === c.id ? " activo" : "");
-    b.textContent = `${c.icono} ${c.nombre}`;
+    b.className = "categoria";
+    b.style.setProperty("--acento", c.color);
+    b.innerHTML = `
+      <span class="categoria-icono" aria-hidden="true">${c.icono}</span>
+      <span class="categoria-nombre"></span>
+      <span class="categoria-detalle"></span>`;
+    b.querySelector(".categoria-nombre").textContent = c.nombre;
+    b.querySelector(".categoria-detalle").textContent = plural(cuantos(c.id));
     b.addEventListener("click", () => {
-      filtroCategoria = c.id;
-      pintarChips();
-      pintarGrid();
+      history.pushState({ c: c.id }, "", linkCatalogo(codigoCliente, c.id));
+      mostrarCategoria(c, true);
     });
-    cont.appendChild(b);
+    grid.appendChild(b);
   });
+  mostrar("portada");
+  window.scrollTo(0, 0);
 }
+
+function mostrarCategoria(cat, conVolver) {
+  categoriaActual = cat;
+  document.title = `${cat.nombre} · ${nombreTienda}`;
+  $("cat-icono").textContent = cat.icono;
+  $("cat-icono").style.setProperty("--acento", cat.color);
+  $("cat-nombre").textContent = cat.nombre;
+  const n = cuantos(cat.id);
+  $("cat-resumen").textContent = n ? `${plural(n)} disponibles` : "Esta categoría todavía no tiene productos.";
+  $("btn-volver").hidden = !conVolver;
+  $("btn-compartir-categoria").hidden = n === 0;
+  document.querySelector(".filtros").hidden = n === 0;
+  $("buscar").value = "";
+  pintarGrid();
+  mostrar("categoria");
+  window.scrollTo(0, 0);
+}
+
+// Atrás/adelante del navegador dentro del catálogo completo
+window.addEventListener("popstate", (e) => {
+  if (!productos) return;
+  const cat = categoriaPorId(e.state?.c);
+  if (cat) mostrarCategoria(cat, !e.state?.directo);
+  else mostrarPortada();
+});
 
 function pintarGrid() {
   const texto = $("buscar").value.trim().replace(/\s+/g, "");
   const visibles = productos.filter((p) =>
-    (filtroCategoria === "todas" || p.categoria === filtroCategoria) &&
-    (!texto || p.codigo.includes(texto))
+    p.categoria === categoriaActual?.id && (!texto || p.codigo.includes(texto))
   );
   const grid = $("grid");
   grid.innerHTML = "";
-  $("sin-resultados").hidden = visibles.length > 0 || productos.length === 0;
+  $("sin-resultados").hidden = visibles.length > 0 || cuantos(categoriaActual?.id) === 0;
   visibles.forEach((p) => {
     const card = document.createElement("button");
     card.type = "button";
@@ -149,13 +193,21 @@ $("detalle-cerrar").addEventListener("click", () => $("detalle").close());
 $("detalle").addEventListener("click", (e) => { if (e.target === $("detalle")) $("detalle").close(); });
 $("buscar").addEventListener("input", pintarGrid);
 
-// Compartir el mismo link (útil si una clienta quiere reenviarlo).
-if (navigator.share) {
-  $("btn-compartir").hidden = false;
-  $("btn-compartir").addEventListener("click", () =>
-    navigator.share({ title: document.title, url: location.href }).catch(() => {})
-  );
-}
+$("btn-volver").addEventListener("click", () => history.back());
+
+// Compartir: todo el catálogo, o solo la categoría que se está viendo.
+$("btn-compartir-todo").innerHTML = `${ICONO_COMPARTIR} Compartir catálogo`;
+$("btn-compartir-categoria").innerHTML = `${ICONO_COMPARTIR} Compartir esta categoría`;
+$("btn-compartir-todo").addEventListener("click", () =>
+  compartirLink({ url: linkCatalogo(codigoCliente), titulo: nombreTienda, texto: `Mira el catálogo de ${nombreTienda}` }, toast)
+);
+$("btn-compartir-categoria").addEventListener("click", () =>
+  compartirLink({
+    url: linkCatalogo(codigoCliente, categoriaActual.id),
+    titulo: `${categoriaActual.nombre} · ${nombreTienda}`,
+    texto: `Mira ${categoriaActual.nombre} en el catálogo de ${nombreTienda}`
+  }, toast)
+);
 
 if (!configLista) {
   error("El catálogo no está disponible en este momento.");

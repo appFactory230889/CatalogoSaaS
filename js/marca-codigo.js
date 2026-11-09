@@ -14,7 +14,7 @@ export async function dibujarCodigo(ctx, ancho, alto, codigo) {
   ctx.shadowBlur = Math.max(2, tamano * 0.18);
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = Math.max(1, tamano * 0.04);
-  ctx.fillStyle = "rgba(255, 255, 255, 0.82)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.94)";
   ctx.fillText(codigo, ancho / 2, alto / 2);
   ctx.restore();
 }
