@@ -45,11 +45,11 @@
     "negocios": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid && newData.exists()",
+        ".write": "(auth != null && auth.uid === $uid && newData.exists()) && !root.child('bloqueos').child($uid).exists()",
         ".validate": "newData.hasChildren(['nombre', 'codigoCliente', 'codigoDisponible', 'totalItems'])",
         "nombre": {
           ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60",
-          ".read": "true"
+          ".read": "(!root.child('bloqueos').child($uid).exists() || (auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true))"
         },
         "contacto": {
           ".validate": "newData.isString()"
@@ -59,7 +59,7 @@
         },
         "codigoCliente": {
           ".validate": "newData.isNumber() && ((data.exists() && newData.val() === data.val()) || (!data.exists() && newData.parent().parent().parent().child('codigosCliente').child(newData.val() + '').val() === $uid))",
-          ".read": "true"
+          ".read": "(!root.child('bloqueos').child($uid).exists() || (auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true))"
         },
         "codigoDisponible": {
           ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().parent().parent().child('productos').child($uid).child(data.val() + '').exists() && !root.child('productos').child($uid).child(data.val() + '').exists()))"
@@ -78,12 +78,12 @@
     },
     "productos": {
       "$uid": {
-        ".read": "true",
+        ".read": "(!root.child('bloqueos').child($uid).exists() || (auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true))",
         ".indexOn": [
           "categoria"
         ],
         "$num": {
-          ".write": "auth != null && auth.uid === $uid && ((!data.exists() && newData.exists() && $num === root.child('negocios').child($uid).child('codigoDisponible').val() + '' && newData.parent().parent().parent().child('negocios').child($uid).child('codigoDisponible').val() === root.child('negocios').child($uid).child('codigoDisponible').val() + 1 && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() + 1) || (data.exists() && newData.exists() && newData.child('numero').val() === data.child('numero').val()) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('negocios').child($uid).child('ultimoBorrado').val() === $num && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() - 1))",
+          ".write": "(auth != null && auth.uid === $uid && ((!data.exists() && newData.exists() && $num === root.child('negocios').child($uid).child('codigoDisponible').val() + '' && newData.parent().parent().parent().child('negocios').child($uid).child('codigoDisponible').val() === root.child('negocios').child($uid).child('codigoDisponible').val() + 1 && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() + 1) || (data.exists() && newData.exists() && newData.child('numero').val() === data.child('numero').val()) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('negocios').child($uid).child('ultimoBorrado').val() === $num && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() - 1))) && !root.child('bloqueos').child($uid).exists()",
           ".validate": "newData.hasChildren(['numero', 'codigo', 'categoria', 'precio', 'foto', 'disponible']) && newData.child('numero').val() + '' === $num",
           "numero": {
             ".validate": "newData.isNumber()"
@@ -159,8 +159,8 @@
     },
     "configCategorias": {
       "$uid": {
-        ".read": "true",
-        ".write": "auth != null && auth.uid === $uid",
+        ".read": "(!root.child('bloqueos').child($uid).exists() || (auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true))",
+        ".write": "(auth != null && auth.uid === $uid) && !root.child('bloqueos').child($uid).exists()",
         "$cat": {
           ".validate": "$cat.matches(/^(ropa|zapatos|joyeria|ninos|hogar)$/)",
           "telas": {
@@ -304,6 +304,23 @@
           "$otro": {
             ".validate": false
           }
+        }
+      }
+    },
+    "bloqueos": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$uid": {
+        ".read": "(auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true)",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['motivo', 'desde'])",
+        "motivo": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 200"
+        },
+        "desde": {
+          ".validate": "newData.isNumber()"
+        },
+        "$otro": {
+          ".validate": false
         }
       }
     }

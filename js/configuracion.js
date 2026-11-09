@@ -192,6 +192,10 @@ function pintarTarjetas() {
 
 async function iniciar(user) {
   uid = user.uid;
+  if ((await get(ref(db, `bloqueos/${uid}`)).catch(() => null))?.exists()) {
+    location.replace("app.html");
+    return;
+  }
   $("cat-icono").textContent = categoria.icono;
   $("cat-nombre").textContent = categoria.nombre;
   document.title = `Configuración de ${categoria.nombre} · App Factory Catalog`;

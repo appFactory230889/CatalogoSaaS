@@ -287,6 +287,10 @@ if (!configLista) {
 } else {
   cargar().catch((err) => {
     console.error(err);
-    error("No se pudo cargar el catálogo. Revisa tu conexión e intenta de nuevo.");
+    // Si Firebase no deja leerlo, el catálogo está suspendido.
+    const sinPermiso = err?.code === "PERMISSION_DENIED" || /permission/i.test(err?.message || "");
+    error(sinPermiso
+      ? "Este catálogo no está disponible por el momento."
+      : "No se pudo cargar el catálogo. Revisa tu conexión e intenta de nuevo.");
   });
 }

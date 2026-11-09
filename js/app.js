@@ -3,7 +3,7 @@ import {
   auth, db, configLista, onAuthStateChanged, signOut, ref, get
 } from "./firebase.js";
 import {
-  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan
+  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan, LINK_SUSCRIPCION
 } from "./datos.js";
 import { linkCatalogo, compartirLink } from "./compartir.js";
 import { iniciarPagos } from "./pagos.js";
@@ -88,6 +88,15 @@ async function mostrarPanel(negocio) {
   document.title = `${negocio.nombre} · App Factory Catalog`;
   pintarUso(negocio);
   iniciarPagos({ usuario, negocio, toast });
+  // Cuenta bloqueada por App Factory: aviso y sin acceso a categorías ni a compartir.
+  const bloqueada = !!negocio.bloqueo;
+  $("aviso-bloqueo").hidden = !bloqueada;
+  if (bloqueada) {
+    $("bloqueo-motivo").textContent = `Motivo: ${negocio.bloqueo.motivo}`;
+    $("bloqueo-whatsapp").href = LINK_SUSCRIPCION;
+  }
+  document.querySelector(".compartir").hidden = bloqueada;
+  $("grid-categorias").hidden = bloqueada;
   pintarCategorias({});
   mostrarVista("panel");
   pintarCategorias(await contarPorCategoria(usuario.uid));

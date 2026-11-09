@@ -53,6 +53,7 @@
         <div class="dato"><span id="dato-clientas">0</span><small>Clientas</small></div>
         <div class="dato"><span id="dato-premium">0</span><small>Premium activas</small></div>
         <div class="dato destacado"><span id="dato-pendientes">0</span><small>Pagos por revisar</small></div>
+        <div class="dato"><span id="dato-bloqueadas">0</span><small>Bloqueadas</small></div>
         <div class="dato"><span id="dato-ingresos">$0</span><small>Aprobado este mes</small></div>
       </div>
 
@@ -93,6 +94,7 @@
     <form id="form-plan" novalidate>
       <h2 id="plan-titulo">Aprobar pago</h2>
       <p class="sub" id="plan-subtitulo"></p>
+      <p class="aviso-bloqueo" id="plan-bloqueo" hidden></p>
       <div class="grid-atributos">
         <label class="campo">
           <span>Meses a sumar</span>
@@ -107,6 +109,7 @@
       <p id="msg-plan" class="mensaje" role="alert"></p>
       <div class="acciones acciones-separadas">
         <button type="button" id="btn-plan-gratis" class="btn btn-peligro btn-sm" hidden>Pasar a plan gratis</button>
+        <button type="button" id="btn-bloquear" class="btn btn-peligro btn-sm" hidden>⛔ Bloquear uso</button>
         <span class="espacio"></span>
         <button type="button" id="btn-plan-cancelar" class="btn btn-fantasma">Cancelar</button>
         <button type="submit" id="btn-plan-guardar" class="btn btn-primario">Aprobar</button>

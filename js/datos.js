@@ -257,12 +257,14 @@ export function sumarMeses(ms, meses) {
   return d.getTime();
 }
 
-/** Lee el negocio con valores seguros (incluye su plan). */
+/** Lee el negocio con valores seguros (incluye su plan y si está bloqueado). */
 export async function leerNegocio(uid) {
-  const [snapNegocio, snapPlan] = await Promise.all([
+  const [snapNegocio, snapPlan, snapBloqueo] = await Promise.all([
     get(ref(db, `negocios/${uid}`)),
-    get(ref(db, `planes/${uid}`)).catch(() => null)
+    get(ref(db, `planes/${uid}`)).catch(() => null),
+    get(ref(db, `bloqueos/${uid}`)).catch(() => null)
   ]);
+  const b = snapBloqueo?.val();
   const d = snapNegocio.val() || {};
   const plan = leerPlan(snapPlan?.val());
   return {
@@ -271,7 +273,8 @@ export async function leerNegocio(uid) {
     codigoDisponible: num(d.codigoDisponible, 0),
     totalItems: num(d.totalItems, 0),
     limite: plan.limite,
-    plan
+    plan,
+    bloqueo: b && typeof b.motivo === "string" ? { motivo: b.motivo, desde: num(b.desde) } : null
   };
 }
 

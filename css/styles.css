@@ -527,6 +527,15 @@ a.btn, a.categoria { text-decoration: none; }
 .plan-chip.gracia { background: var(--acento); color: #1B1205; }
 .plan-chip.vencido { background: #FDE2E2; color: #9B2C2C; }
 .plan-chip.gratis { background: #EEF1F7; color: var(--texto-suave); }
+.plan-chip.bloqueada { background: #2B2B2B; color: #fff; }
+.aviso-bloqueo { margin-top: 10px; padding: 8px 12px; border-radius: 10px; background: #FDE2E2; color: #9B2C2C; font-size: .85rem; font-weight: 600; }
+.cuenta-bloqueada {
+  display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px;
+  padding: 16px 18px; border-radius: var(--radio); background: #FFF6F6; border: 1px solid #F3B4B4; color: #6B1F1F;
+}
+.cuenta-bloqueada .emoji-grande { margin: 0; font-size: 2rem; }
+.cuenta-bloqueada strong { font-size: 1.05rem; display: block; margin-bottom: 4px; }
+.cuenta-bloqueada p { font-size: .88rem; margin-bottom: 8px; }
 
 /* Botón compartir en el panel */
 .compartir {

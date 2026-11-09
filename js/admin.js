@@ -1,7 +1,7 @@
 // Panel de administración de App Factory: aprobar/rechazar pagos y gestionar planes.
 // Solo funciona con cuentas que estén en admins/{uid} = true (las reglas de Firebase lo exigen).
 import {
-  auth, db, configLista, onAuthStateChanged, ref, get, update, serverTimestamp
+  auth, db, configLista, onAuthStateChanged, ref, get, set, update, serverTimestamp
 } from "./firebase.js";
 import {
   num, formatearCliente, formatearPrecio, formatearFecha, leerPlan, sumarMeses, LIMITE_GRATIS
@@ -33,10 +33,11 @@ function mostrar(vista) {
 // Carga
 // ---------------------------------------------------------------------
 async function cargarTodo() {
-  const [snapNeg, snapPlanes, snapPagos] = await Promise.all([
-    get(ref(db, "negocios")), get(ref(db, "planes")), get(ref(db, "pagos"))
+  const [snapNeg, snapPlanes, snapPagos, snapBloqueos] = await Promise.all([
+    get(ref(db, "negocios")), get(ref(db, "planes")), get(ref(db, "pagos")), get(ref(db, "bloqueos"))
   ]);
   const planes = snapPlanes.val() || {};
+  const bloqueos = snapBloqueos.val() || {};
   clientas = {};
   snapNeg.forEach((h) => {
     const d = h.val() || {};
@@ -47,7 +48,8 @@ async function cargarTodo() {
       codigoCliente: num(d.codigoCliente),
       totalItems: num(d.totalItems),
       planCrudo: planes[h.key] || null,
-      plan: leerPlan(planes[h.key])
+      plan: leerPlan(planes[h.key]),
+      bloqueo: bloqueos[h.key] && typeof bloqueos[h.key].motivo === "string" ? bloqueos[h.key] : null
     };
   });
   pagos = [];
@@ -69,6 +71,7 @@ function pintarResumen() {
   $("dato-clientas").textContent = lista.length;
   $("dato-premium").textContent = lista.filter((c) => c.plan.activo).length;
   $("dato-pendientes").textContent = pagos.filter((p) => p.estado === "pendiente").length;
+  $("dato-bloqueadas").textContent = lista.filter((c) => c.bloqueo).length;
   $("dato-ingresos").textContent = formatearPrecio(ingresos);
 }
 
@@ -182,6 +185,15 @@ function abrirDialogo(a) {
     $("btn-plan-guardar").textContent = "Guardar";
     $("btn-plan-gratis").hidden = !c.plan.activo;
   }
+  const bloq = $("btn-bloquear");
+  bloq.hidden = a.tipo !== "manual";
+  bloq.textContent = c.bloqueo ? "✅ Desbloquear" : "⛔ Bloquear uso";
+  bloq.classList.toggle("btn-peligro", !c.bloqueo);
+  bloq.classList.toggle("btn-fantasma", !!c.bloqueo);
+  $("plan-bloqueo").hidden = !c.bloqueo;
+  if (c.bloqueo) {
+    $("plan-bloqueo").textContent = `Cuenta bloqueada${c.bloqueo.desde ? ` desde el ${formatearFecha(c.bloqueo.desde)}` : ""}. Motivo: ${c.bloqueo.motivo}`;
+  }
   actualizarResultado();
   $("dialogo-plan").showModal();
 }
@@ -242,6 +254,32 @@ $("btn-plan-gratis").onclick = async () => {
   }
 };
 
+$("btn-bloquear").onclick = async () => {
+  const uid = accion.uid;
+  const c = clientas[uid];
+  try {
+    if (c.bloqueo) {
+      if (!confirm(`¿Desbloquear a ${c.nombre}?\n\nPodrá volver a usar su panel y su catálogo será público otra vez.`)) return;
+      await set(ref(db, `bloqueos/${uid}`), null);
+      toast(`${c.nombre} desbloqueada`);
+    } else {
+      const motivo = prompt(
+        `¿Por qué se bloquea a ${c.nombre}? (Ella verá este mensaje)\n\n` +
+        "Mientras esté bloqueada no podrá subir ni editar productos, y su catálogo público dejará de verse. No se borra nada.",
+        "Falta de pago de la suscripción."
+      );
+      if (motivo === null) return;
+      await set(ref(db, `bloqueos/${uid}`), { motivo: motivo.trim().slice(0, 200) || "Cuenta suspendida", desde: serverTimestamp() });
+      toast(`${c.nombre} bloqueada`);
+    }
+    $("dialogo-plan").close();
+    await cargarTodo();
+  } catch (err) {
+    console.error(err);
+    $("msg-plan").textContent = "No se pudo guardar. ¿Publicaste las reglas nuevas de Firebase?";
+  }
+};
+
 // ---------------------------------------------------------------------
 // Clientas
 // ---------------------------------------------------------------------
@@ -261,8 +299,8 @@ function pintarClientas() {
       td[1].querySelector("small").textContent = c.contacto;
       td[2].textContent = `${c.totalItems} / ${c.plan.limite}`;
       const chip = td[3].querySelector(".plan-chip");
-      chip.textContent = c.plan.activo ? (c.plan.enGracia ? "Premium (gracia)" : "Premium") : (c.plan.vencido ? "Vencido" : "Gratis");
-      chip.classList.add(c.plan.activo ? (c.plan.enGracia ? "gracia" : "premium") : (c.plan.vencido ? "vencido" : "gratis"));
+      chip.textContent = c.bloqueo ? "Bloqueada" : c.plan.activo ? (c.plan.enGracia ? "Premium (gracia)" : "Premium") : (c.plan.vencido ? "Vencido" : "Gratis");
+      chip.classList.add(c.bloqueo ? "bloqueada" : c.plan.activo ? (c.plan.enGracia ? "gracia" : "premium") : (c.plan.vencido ? "vencido" : "gratis"));
       td[4].textContent = c.plan.vigenteHasta ? formatearFecha(c.plan.vigenteHasta) : "—";
       td[5].querySelector("button").onclick = () => abrirDialogo({ tipo: "manual", uid: c.uid });
       tbody.appendChild(tr);

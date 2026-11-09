@@ -129,7 +129,7 @@ async function cargarProductos() {
 async function iniciar(user) {
   usuario = user;
   negocio = await leerNegocio(user.uid);
-  if (!negocio.nombre || !negocio.codigoCliente) {
+  if (!negocio.nombre || !negocio.codigoCliente || negocio.bloqueo) {
     location.replace("app.html");
     return;
   }
