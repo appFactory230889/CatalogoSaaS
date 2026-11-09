@@ -46,18 +46,24 @@ function pintarCategorias(conteo) {
   const grid = $("grid-categorias");
   grid.innerHTML = "";
   CATEGORIAS.forEach((c) => {
-    const a = document.createElement("a");
-    a.className = "categoria";
-    a.href = `categoria.html?c=${c.id}`;
-    a.style.setProperty("--acento", c.color);
-    a.innerHTML = `
-      <span class="categoria-icono" aria-hidden="true">${c.icono}</span>
-      <span class="categoria-nombre"></span>
-      <span class="categoria-detalle"></span>`;
-    a.querySelector(".categoria-nombre").textContent = c.nombre;
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "categoria-tarjeta";
+    tarjeta.style.setProperty("--acento", c.color);
+    tarjeta.innerHTML = `
+      <a class="categoria" href="categoria.html?c=${c.id}">
+        <span class="categoria-icono" aria-hidden="true">${c.icono}</span>
+        <span class="categoria-nombre"></span>
+        <span class="categoria-detalle"></span>
+      </a>
+      <a class="categoria-config" href="configuracion.html?c=${c.id}">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </a>`;
+    tarjeta.querySelector(".categoria-nombre").textContent = c.nombre;
+    tarjeta.querySelector(".categoria-config").setAttribute("aria-label", `Configuración de ${c.nombre}`);
+    tarjeta.querySelector(".categoria-config").title = `Configuración de ${c.nombre}`;
     const n = conteo[c.id] || 0;
-    a.querySelector(".categoria-detalle").textContent = `${n} producto${n === 1 ? "" : "s"}`;
-    grid.appendChild(a);
+    tarjeta.querySelector(".categoria-detalle").textContent = `${n} producto${n === 1 ? "" : "s"}`;
+    grid.appendChild(tarjeta);
   });
 }
 
