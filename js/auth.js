@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail,
   signInWithPopup, signInWithRedirect, onAuthStateChanged
 } from "./firebase.js";
+import { cuentasPrevias } from "./dispositivo.js";
 
 const $ = (id) => document.getElementById(id);
 const form = $("form-auth");
@@ -34,6 +35,18 @@ function cambiarModo(nuevo) {
   btnSubmit.textContent = modo === "registro" ? "Crear cuenta" : "Ingresar";
   inputPassword.autocomplete = modo === "registro" ? "new-password" : "current-password";
   mostrarMensaje("");
+  pintarAvisoCuentaPrevia();
+}
+
+/** Al crear cuenta: avisar si desde este dispositivo ya entró otra cuenta (una cuenta por negocio). */
+function pintarAvisoCuentaPrevia() {
+  const aviso = $("aviso-cuenta-previa");
+  const previas = modo === "registro" ? cuentasPrevias() : [];
+  aviso.hidden = previas.length === 0;
+  if (!previas.length) return;
+  const lista = previas.length === 1 ? `(${previas[0]})` : `(${previas.slice(0, 3).join(", ")})`;
+  aviso.textContent = `Ya hay ${previas.length === 1 ? "una cuenta" : "cuentas"} de App Factory Catalog en este dispositivo ${lista}. ` +
+    "Recuerda: una cuenta por negocio. Si es tu misma tienda, mejor toca «Ingresar».";
 }
 
 function ocupado(estado) {

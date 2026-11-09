@@ -70,6 +70,11 @@
         "ultimoBorrado": {
           ".validate": "newData.isString()"
         },
+        "dispositivos": {
+          "$dispositivo": {
+            ".validate": "newData.isNumber() && $dispositivo.matches(/^[a-z0-9]{12,40}$/)"
+          }
+        },
         "$otro": {
           ".validate": false
         }

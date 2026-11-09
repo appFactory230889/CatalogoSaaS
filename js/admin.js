@@ -51,9 +51,12 @@ async function cargarTodo() {
       totalItems: num(d.totalItems),
       planCrudo: planes[h.key] || null,
       plan: leerPlan(planes[h.key]),
-      bloqueo: bloqueos[h.key] && typeof bloqueos[h.key].motivo === "string" ? bloqueos[h.key] : null
+      bloqueo: bloqueos[h.key] && typeof bloqueos[h.key].motivo === "string" ? bloqueos[h.key] : null,
+      dispositivos: d.dispositivos && typeof d.dispositivos === "object" ? Object.keys(d.dispositivos) : [],
+      gemelas: []   // otras cuentas que usaron el mismo dispositivo
     };
   });
+  calcularDuplicados();
   pagos = [];
   snapPagos.forEach((porClienta) => {
     porClienta.forEach((h) => { pagos.push({ uid: porClienta.key, ...leerPago(h.key, h.val()) }); });
@@ -62,6 +65,58 @@ async function cargarTodo() {
   pintarResumen();
   pintarPagos();
   pintarClientas();
+}
+
+// ---------------------------------------------------------------------
+// Posibles cuentas duplicadas: cuentas que entraron desde el mismo dispositivo
+// ---------------------------------------------------------------------
+let gruposDuplicados = []; // [[uid, uid, ...], ...]
+
+function calcularDuplicados() {
+  const porDispositivo = {};
+  Object.values(clientas).forEach((c) => c.dispositivos.forEach((d) => (porDispositivo[d] ??= []).push(c.uid)));
+  // Unir en grupos (si A comparte con B y B con C, los tres van juntos)
+  const grupoDe = {};
+  const raiz = (u) => (grupoDe[u] === u ? u : (grupoDe[u] = raiz(grupoDe[u])));
+  Object.keys(clientas).forEach((u) => (grupoDe[u] = u));
+  Object.values(porDispositivo).forEach((uids) => {
+    for (let i = 1; i < uids.length; i++) grupoDe[raiz(uids[i])] = raiz(uids[0]);
+  });
+  const grupos = {};
+  Object.keys(clientas).forEach((u) => (grupos[raiz(u)] ??= []).push(u));
+  gruposDuplicados = Object.values(grupos).filter((g) => g.length > 1);
+  gruposDuplicados.forEach((g) => g.forEach((u) => (clientas[u].gemelas = g.filter((x) => x !== u))));
+}
+
+const etiquetaClienta = (uid) => `${formatearCliente(clientas[uid].codigoCliente)} ${clientas[uid].nombre}`;
+
+function listaBonita(partes) {
+  return partes.length <= 1 ? partes.join("") : `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}`;
+}
+
+function pintarDuplicados() {
+  const caja = $("duplicados");
+  caja.hidden = gruposDuplicados.length === 0;
+  caja.innerHTML = `<p class="duplicados-titulo">⚠️ Posibles cuentas duplicadas</p>
+    <p class="duplicados-ayuda">Estas cuentas entraron desde el mismo celular o navegador. Puede ser alguien abriendo varias cuentas gratis (o tus propias cuentas de prueba). Revisa y, si corresponde, usa «Bloquear uso».</p>`;
+  gruposDuplicados.forEach((g) => {
+    const fila = document.createElement("div");
+    fila.className = "duplicado-fila";
+    const texto = document.createElement("p");
+    texto.textContent = `${listaBonita(g.map(etiquetaClienta))} ${g.length === 2 ? "se registraron o entraron" : "entraron"} desde el mismo dispositivo.`;
+    const botones = document.createElement("div");
+    botones.className = "duplicado-botones";
+    g.forEach((u) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "btn btn-fantasma btn-sm";
+      b.textContent = `Gestionar ${formatearCliente(clientas[u].codigoCliente)}`;
+      b.onclick = () => abrirDialogo({ tipo: "manual", uid: u });
+      botones.appendChild(b);
+    });
+    fila.append(texto, botones);
+    caja.appendChild(fila);
+  });
 }
 
 function pintarResumen() {
@@ -74,6 +129,9 @@ function pintarResumen() {
   $("dato-premium").textContent = lista.filter((c) => c.plan.activo).length;
   $("dato-pendientes").textContent = pagos.filter((p) => p.estado === "pendiente").length;
   $("dato-bloqueadas").textContent = lista.filter((c) => c.bloqueo).length;
+  const duplicadas = lista.filter((c) => c.gemelas.length).length;
+  $("dato-duplicadas").textContent = duplicadas;
+  $("caja-duplicadas").classList.toggle("destacado", duplicadas > 0);
   $("dato-ingresos").textContent = formatearPrecio(ingresos);
 }
 
@@ -296,6 +354,7 @@ $("btn-bloquear").onclick = async () => {
 // Clientas
 // ---------------------------------------------------------------------
 function pintarClientas() {
+  pintarDuplicados();
   const texto = $("buscar-clienta").value.trim().toLowerCase();
   const tbody = $("tabla-clientas");
   tbody.innerHTML = "";
@@ -309,6 +368,12 @@ function pintarClientas() {
       td[0].textContent = formatearCliente(c.codigoCliente);
       td[1].querySelector("strong").textContent = c.nombre;
       td[1].querySelector("small").textContent = c.contacto;
+      if (c.gemelas.length) {
+        const aviso = document.createElement("span");
+        aviso.className = "aviso-duplicado";
+        aviso.textContent = `⚠️ Mismo dispositivo que ${c.gemelas.map((u) => formatearCliente(clientas[u].codigoCliente)).join(", ")}`;
+        td[1].appendChild(aviso);
+      }
       td[2].textContent = `${c.totalItems} / ${c.plan.limite}`;
       const chip = td[3].querySelector(".plan-chip");
       chip.textContent = c.bloqueo ? "Bloqueada" : c.plan.activo ? (c.plan.enGracia ? "Premium (gracia)" : "Premium") : (c.plan.vencido ? "Vencido" : "Gratis");

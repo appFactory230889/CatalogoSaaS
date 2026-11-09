@@ -1,7 +1,8 @@
 // Panel principal de la administradora del negocio.
 import {
-  auth, db, configLista, onAuthStateChanged, signOut, ref, get
+  auth, db, configLista, onAuthStateChanged, signOut, ref, get, update, serverTimestamp
 } from "./firebase.js";
+import { idDispositivo, recordarCuenta } from "./dispositivo.js";
 import {
   CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan, linkWhatsApp
 } from "./datos.js";
@@ -85,7 +86,15 @@ function prepararCompartir(negocio) {
     compartirLink({ url, titulo: negocio.nombre, texto: `Mira el catálogo de ${negocio.nombre}` }, toast);
 }
 
+/** Anota desde qué dispositivo entró (para detectar cuentas duplicadas en Admin). */
+function registrarDispositivo() {
+  recordarCuenta(usuario.uid, usuario.email);
+  update(ref(db, `negocios/${usuario.uid}/dispositivos`), { [idDispositivo()]: serverTimestamp() })
+    .catch(() => {}); // una cuenta bloqueada no puede escribir: no importa
+}
+
 async function mostrarPanel(negocio) {
+  registrarDispositivo();
   prepararCompartir(negocio);
   $("saludo").textContent = `Hola, ${negocio.nombre}`;
   document.title = `${negocio.nombre} · App Factory Catalog`;
