@@ -23,6 +23,30 @@ import { db, ref, get, set, update, push, runTransaction, serverTimestamp } from
 import { ESPECIFICACIONES, especDe } from "./especificaciones.js";
 
 export const LIMITE_GRATIS = 250;
+/** Contacto de App Factory para ampliar el plan (suscripción). */
+export const LINK_SUSCRIPCION = "https://wa.me/message/BXIPDQMDA2INL1";
+const AVISO_DESDE = 0.9; // a partir del 90 % de uso se avisa con anticipación
+
+/**
+ * Pinta la barra de uso y el aviso del plan dentro de #uso.
+ * Devuelve true si ya llegó al límite.
+ */
+export function pintarUsoPlan(negocio, textoUso) {
+  const usados = negocio.totalItems;
+  const lleno = usados >= negocio.limite;
+  const casi = !lleno && usados >= Math.floor(negocio.limite * AVISO_DESDE);
+  const uso = document.getElementById("uso");
+  document.getElementById("uso-texto").textContent = textoUso(usados, negocio.limite);
+  document.getElementById("uso-barra").style.width = Math.min(100, Math.round((usados / negocio.limite) * 100)) + "%";
+  uso.classList.toggle("lleno", lleno);
+  uso.classList.toggle("casi", casi);
+  const restantes = negocio.limite - usados;
+  uso.querySelector(".uso-aviso-texto").textContent = lleno
+    ? `Llegaste al límite de ${negocio.limite} productos de tu plan. Para seguir subiendo productos, amplía tu plan con App Factory.`
+    : `Te ${restantes === 1 ? "queda 1 espacio" : `quedan ${restantes} espacios`} de ${negocio.limite}. Si necesitas más, amplía tu plan con App Factory.`;
+  uso.querySelector(".btn-whatsapp").href = LINK_SUSCRIPCION;
+  return lleno;
+}
 
 export const CATEGORIAS = [
   { id: "ropa",    nombre: "Ropa",    icono: "👗", color: "#E8618C" },

@@ -212,10 +212,17 @@ a.btn, a.categoria { text-decoration: none; }
 .uso-cliente strong { color: var(--primario); font-family: "Montserrat", sans-serif; }
 .uso-pista { height: 8px; background: var(--primario-suave); border-radius: 99px; margin-top: 10px; overflow: hidden; }
 .uso-barra { height: 100%; width: 0; background: linear-gradient(90deg, var(--primario), var(--acento)); border-radius: 99px; transition: width .4s; }
-.uso-aviso { display: none; margin-top: 10px; font-size: .85rem; color: var(--error); font-weight: 600; }
+.uso-aviso { display: none; margin-top: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; }
+.uso-aviso-texto { font-size: .86rem; font-weight: 600; color: var(--error); flex: 1; min-width: 220px; }
+.btn-whatsapp { background: #25D366; color: #fff; text-decoration: none; }
+.btn-whatsapp:hover { background: #1EBE5A; }
+.uso.casi { border-color: #F8C9A3; background: #FFF8F1; }
+.uso.casi .uso-barra { background: linear-gradient(90deg, var(--acento), #E8590C); }
+.uso.casi .uso-aviso-texto { color: #9A4A0B; }
+.uso.casi .uso-aviso { display: flex; }
 .uso.lleno { border-color: #F3B4B4; background: #FFF6F6; }
 .uso.lleno .uso-barra { background: var(--error); }
-.uso.lleno .uso-aviso { display: block; }
+.uso.lleno .uso-aviso { display: flex; }
 
 /* ---------- Categoría ---------- */
 .cabecera-categoria { display: flex; align-items: center; gap: 14px; }

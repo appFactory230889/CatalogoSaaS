@@ -6,6 +6,7 @@ import {
 } from "./firebase.js";
 import {
   categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num,
+  pintarUsoPlan, LINK_SUSCRIPCION,
   asegurarConfigCategoria, leerPresentaciones, leerAtributos, tieneVariosPrecios
 } from "./datos.js";
 import { especDe, textos } from "./especificaciones.js";
@@ -40,11 +41,7 @@ function toast(texto) {
 }
 
 function pintarUso() {
-  const usados = negocio.totalItems;
-  const lleno = usados >= negocio.limite;
-  $("uso-texto").textContent = `${usados} de ${negocio.limite} productos usados en tu catálogo`;
-  $("uso-barra").style.width = Math.min(100, Math.round((usados / negocio.limite) * 100)) + "%";
-  $("uso").classList.toggle("lleno", lleno);
+  const lleno = pintarUsoPlan(negocio, (usados, limite) => `${usados} de ${limite} productos usados en tu catálogo`);
   $("btn-nuevo").disabled = lleno;
 }
 
@@ -318,7 +315,8 @@ $("btn-guardar").addEventListener("click", async () => {
     negocio = await leerNegocio(usuario.uid);
     pintarUso();
     if (negocio.totalItems >= negocio.limite) {
-      msg.textContent = `Llegaste al límite de ${negocio.limite} productos. Para subir más, contrata la suscripción.`;
+      msg.innerHTML = `Llegaste al límite de ${negocio.limite} productos. <a target="_blank" rel="noopener">Amplía tu plan por WhatsApp</a>.`;
+      msg.querySelector("a").href = LINK_SUSCRIPCION;
       return;
     }
     const numero = negocio.codigoDisponible;

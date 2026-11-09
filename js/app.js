@@ -3,7 +3,7 @@ import {
   auth, db, configLista, onAuthStateChanged, signOut, ref, get
 } from "./firebase.js";
 import {
-  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente
+  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan
 } from "./datos.js";
 import { linkCatalogo, compartirLink } from "./compartir.js";
 
@@ -69,11 +69,7 @@ function pintarCategorias(conteo) {
 }
 
 function pintarUso(negocio) {
-  const usados = negocio.totalItems;
-  const pct = Math.min(100, Math.round((usados / negocio.limite) * 100));
-  $("uso-texto").textContent = `${usados} de ${negocio.limite} productos usados`;
-  $("uso-barra").style.width = pct + "%";
-  $("uso").classList.toggle("lleno", usados >= negocio.limite);
+  pintarUsoPlan(negocio, (usados, limite) => `${usados} de ${limite} productos usados`);
   $("codigo-cliente").textContent = formatearCliente(negocio.codigoCliente);
 }
 
