@@ -26,6 +26,10 @@ import { db, ref, get, set, update, push, runTransaction, serverTimestamp } from
 import { ESPECIFICACIONES, especDe } from "./especificaciones.js";
 
 export const LIMITE_GRATIS = 250;
+/** Precio del plan Premium en El Salvador (US$ al mes). Cambiarlo aquí lo cambia en todo el sitio. */
+export const PRECIO_PREMIUM_MES = 8;
+/** Límite de productos del plan Premium (sugerido al aprobar un pago). */
+export const LIMITE_PREMIUM = 1000;
 /** Contacto de App Factory para ampliar el plan (suscripción). */
 export const LINK_SUSCRIPCION = "https://wa.me/message/BXIPDQMDA2INL1";
 const AVISO_DESDE = 0.9; // a partir del 90 % de uso se avisa con anticipación

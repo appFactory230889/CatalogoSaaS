@@ -4,12 +4,14 @@ import {
   auth, db, configLista, onAuthStateChanged, ref, get, set, update, serverTimestamp
 } from "./firebase.js";
 import {
-  num, formatearCliente, formatearPrecio, formatearFecha, leerPlan, sumarMeses, LIMITE_GRATIS
+  num, formatearCliente, formatearPrecio, formatearFecha, leerPlan, sumarMeses, LIMITE_GRATIS,
+  PRECIO_PREMIUM_MES, LIMITE_PREMIUM
 } from "./datos.js";
 import { leerPago, ESTADOS_PAGO } from "./pagos.js";
 
 const $ = (id) => document.getElementById(id);
-const LIMITE_PREMIUM_SUGERIDO = 1000;
+const LIMITE_PREMIUM_SUGERIDO = LIMITE_PREMIUM;
+const esperado = (meses) => PRECIO_PREMIUM_MES * meses;
 
 let clientas = {};   // uid → { uid, nombre, contacto, codigoCliente, totalItems, plan, planCrudo }
 let pagos = [];      // [{ uid, ...pago }]
@@ -115,6 +117,12 @@ function pintarPagos() {
     tarjeta.querySelector(".pago-contacto").textContent = c?.contacto || "";
     tarjeta.querySelector(".pago-montos strong").textContent = formatearPrecio(p.monto);
     tarjeta.querySelector(".pago-montos span").textContent = `· ${p.meses} mes${p.meses === 1 ? "" : "es"}`;
+    if (Math.abs(p.monto - esperado(p.meses)) >= 0.01) {
+      const aviso = document.createElement("span");
+      aviso.className = "monto-distinto";
+      aviso.textContent = `⚠ Esperado: ${formatearPrecio(esperado(p.meses))}`;
+      tarjeta.querySelector(".pago-montos").appendChild(aviso);
+    }
     tarjeta.querySelector(".pago-detalle").textContent =
       [p.banco, p.referencia && `Ref. ${p.referencia}`, p.creadoEn && `Reportado el ${formatearFecha(p.creadoEn)}`]
         .filter(Boolean).join(" · ");
@@ -172,7 +180,11 @@ function abrirDialogo(a) {
   $("msg-plan").textContent = "";
   if (a.tipo === "aprobar") {
     $("plan-titulo").textContent = "Aprobar pago";
-    $("plan-subtitulo").textContent = `${c.nombre} reportó ${formatearPrecio(a.pago.monto)} por ${a.pago.meses} mes${a.pago.meses === 1 ? "" : "es"}.`;
+    const diferencia = a.pago.monto - esperado(a.pago.meses);
+    $("plan-subtitulo").textContent = `${c.nombre} reportó ${formatearPrecio(a.pago.monto)} por ${a.pago.meses} mes${a.pago.meses === 1 ? "" : "es"}` +
+      (Math.abs(diferencia) >= 0.01
+        ? ` (lo esperado es ${formatearPrecio(esperado(a.pago.meses))}: ${diferencia < 0 ? "faltan" : "sobran"} ${formatearPrecio(Math.abs(diferencia))}).`
+        : ` (monto correcto).`);
     $("plan-meses").value = a.pago.meses;
     $("btn-plan-guardar").textContent = "Aprobar";
     $("btn-plan-gratis").hidden = true;

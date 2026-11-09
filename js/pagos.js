@@ -3,7 +3,9 @@
 import {
   db, storage, ref, get, set, serverTimestamp, sRef, uploadBytes, getDownloadURL
 } from "./firebase.js";
-import { nuevoId, num, formatearPrecio, formatearFecha, DIAS_GRACIA, LIMITE_GRATIS } from "./datos.js";
+import {
+  nuevoId, num, formatearPrecio, formatearFecha, DIAS_GRACIA, LIMITE_GRATIS, PRECIO_PREMIUM_MES, LIMITE_PREMIUM
+} from "./datos.js";
 
 const $ = (id) => document.getElementById(id);
 const MAX_MB = 5;
@@ -37,9 +39,16 @@ export function iniciarPagos({ usuario, negocio, toast }) {
   cargarMisPagos(usuario.uid);
 
   const dialogo = $("dialogo-pago");
+  const sugerirMonto = () => {
+    const meses = parseInt($("pago-meses").value, 10) || 1;
+    $("pago-monto").value = (PRECIO_PREMIUM_MES * meses).toFixed(2);
+    $("pago-total").textContent = `Plan Premium: ${formatearPrecio(PRECIO_PREMIUM_MES)} al mes × ${meses} = ${formatearPrecio(PRECIO_PREMIUM_MES * meses)}`;
+  };
+  $("pago-meses").onchange = sugerirMonto;
   $("btn-reportar").onclick = () => {
     $("form-pago").reset();
     $("msg-pago").textContent = "";
+    sugerirMonto();
     dialogo.showModal();
   };
   $("btn-cancelar-pago").onclick = () => dialogo.close();
@@ -53,7 +62,7 @@ function pintarPlan(plan) {
   const caja = $("plan");
   caja.classList.remove("premium", "gracia", "vencido", "pronto");
   let etiqueta = "Plan Gratis";
-  let detalle = `Hasta ${LIMITE_GRATIS} productos. Para ampliar tu plan, haz tu transferencia y reporta el pago aquí.`;
+  let detalle = `Hasta ${LIMITE_GRATIS} productos. Pásate a Premium por ${formatearPrecio(PRECIO_PREMIUM_MES)} al mes (hasta ${LIMITE_PREMIUM.toLocaleString("es")} productos): haz tu transferencia y reporta el pago aquí.`;
   if (plan.activo && plan.enGracia) {
     caja.classList.add("premium", "gracia");
     etiqueta = "Plan Premium · pago pendiente";

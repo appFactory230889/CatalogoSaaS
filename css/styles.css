@@ -515,6 +515,8 @@ a.btn, a.categoria { text-decoration: none; }
 .pago-negocio { font-size: .92rem; }
 .pago-contacto, .pago-detalle { color: var(--texto-suave); word-break: break-word; }
 .pago-montos strong { font-size: 1.1rem; color: var(--texto); }
+.monto-distinto { display: inline-block; margin-left: 6px; font-size: .75rem; font-weight: 700; color: #9A4A0B; background: #FFF1DC; padding: 1px 8px; border-radius: 99px; }
+.pago-total { font-size: .88rem; font-weight: 700; color: var(--primario); background: var(--primario-suave); padding: 8px 12px; border-radius: 10px; margin: 0 0 12px; }
 .pago-acciones { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
 .pago-acciones .btn { flex: 1; }
 .buscar-admin { max-width: 340px; margin-bottom: 12px; }
