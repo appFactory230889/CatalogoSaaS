@@ -49,6 +49,7 @@ export function iniciarPagos({ usuario, negocio, toast }) {
     $("form-pago").reset();
     $("msg-pago").textContent = "";
     sugerirMonto();
+    mostrarDatosTransferencia(toast);
     dialogo.showModal();
   };
   $("btn-cancelar-pago").onclick = () => dialogo.close();
@@ -56,6 +57,28 @@ export function iniciarPagos({ usuario, negocio, toast }) {
     e.preventDefault();
     enviarPago(usuario, toast);
   };
+}
+
+/** Muestra a dónde transferir (lo configura App Factory en admin.html → Ajustes). */
+async function mostrarDatosTransferencia(toast) {
+  const caja = $("datos-transferencia");
+  try {
+    const d = (await get(ref(db, "ajustes/pagos"))).val();
+    const texto = (v) => (typeof v === "string" ? v : "");
+    if (!d || !texto(d.numeroCuenta)) { caja.hidden = true; return; }
+    $("dt-banco").textContent = texto(d.banco);
+    $("dt-tipo").textContent = texto(d.tipoCuenta);
+    $("dt-numero").textContent = texto(d.numeroCuenta);
+    $("dt-titular").textContent = texto(d.titular);
+    $("dt-nota").hidden = !texto(d.nota);
+    $("dt-nota").textContent = texto(d.nota);
+    $("btn-copiar-cuenta").onclick = () =>
+      navigator.clipboard.writeText(texto(d.numeroCuenta).replace(/\s+/g, "")).then(() => toast("Número de cuenta copiado"));
+    caja.hidden = false;
+  } catch (err) {
+    console.error(err);
+    caja.hidden = true;
+  }
 }
 
 function pintarPlan(plan) {

@@ -60,6 +60,7 @@
       <div class="tabs tabs-admin" role="tablist">
         <button type="button" class="tab active" data-vista="pagos" role="tab">Pagos</button>
         <button type="button" class="tab" data-vista="clientas" role="tab">Clientas</button>
+        <button type="button" class="tab" data-vista="ajustes" role="tab">Ajustes</button>
       </div>
 
       <!-- Pagos -->
@@ -85,6 +86,30 @@
             <tbody id="tabla-clientas"></tbody>
           </table>
         </div>
+      </section>
+
+      <!-- Ajustes: datos para transferencia -->
+      <section id="tab-ajustes" hidden>
+        <form id="form-banco" class="tarjeta form-banco" novalidate>
+          <h2>Datos para transferencia</h2>
+          <p class="sub">Las dueñas los ven al tocar «Reportar pago». Solo los ven usuarias con sesión iniciada; no aparecen en el código ni en la página pública.</p>
+          <div class="grid-atributos">
+            <label class="campo"><span>Banco</span><input id="banco-nombre" type="text" maxlength="60" placeholder="Ej. Banco Agrícola"></label>
+            <label class="campo"><span>Tipo de cuenta</span>
+              <select id="banco-tipo">
+                <option value="Ahorro">Ahorro</option>
+                <option value="Corriente">Corriente</option>
+              </select>
+            </label>
+            <label class="campo"><span>Número de cuenta</span><input id="banco-numero" type="text" inputmode="numeric" maxlength="40" placeholder="Ej. 3000123456"></label>
+            <label class="campo"><span>Titular</span><input id="banco-titular" type="text" maxlength="80" placeholder="Nombre como aparece en el banco"></label>
+          </div>
+          <label class="campo"><span>Nota adicional (opcional)</span>
+            <textarea id="banco-nota" maxlength="300" rows="2" placeholder="Ej. También aceptamos Transfer365 o pago en efectivo en agencia."></textarea>
+          </label>
+          <p id="msg-banco" class="mensaje" role="alert"></p>
+          <div class="acciones"><button type="submit" class="btn btn-primario">Guardar datos</button></div>
+        </form>
       </section>
     </section>
   </main>

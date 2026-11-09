@@ -104,7 +104,17 @@
   <dialog id="dialogo-pago" class="dialogo">
     <form id="form-pago" novalidate>
       <h2>Reportar pago</h2>
-      <p class="sub">Sube la foto o el PDF del comprobante de tu transferencia. App Factory lo revisará y activará tu plan.</p>
+      <p class="sub">Haz tu transferencia y sube la foto o el PDF del comprobante. App Factory lo revisará y activará tu plan.</p>
+      <div id="datos-transferencia" class="datos-transferencia" hidden>
+        <p class="dt-titulo">Datos para transferir</p>
+        <dl>
+          <dt>Banco</dt><dd id="dt-banco"></dd>
+          <dt>Tipo de cuenta</dt><dd id="dt-tipo"></dd>
+          <dt>N.º de cuenta</dt><dd><strong id="dt-numero"></strong> <button type="button" id="btn-copiar-cuenta" class="btn btn-fantasma btn-sm">Copiar</button></dd>
+          <dt>Titular</dt><dd id="dt-titular"></dd>
+        </dl>
+        <p id="dt-nota" class="dt-nota" hidden></p>
+      </div>
       <div class="grid-atributos">
         <label class="campo">
           <span>Monto pagado (US$)</span>

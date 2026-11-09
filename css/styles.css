@@ -516,6 +516,16 @@ a.btn, a.categoria { text-decoration: none; }
 .pago-contacto, .pago-detalle { color: var(--texto-suave); word-break: break-word; }
 .pago-montos strong { font-size: 1.1rem; color: var(--texto); }
 .monto-distinto { display: inline-block; margin-left: 6px; font-size: .75rem; font-weight: 700; color: #9A4A0B; background: #FFF1DC; padding: 1px 8px; border-radius: 99px; }
+.datos-transferencia { margin: 14px 0 4px; padding: 12px 14px; border-radius: 12px; background: #F4F7FF; border: 1px solid #C9D3EE; }
+.dt-titulo { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--primario); margin-bottom: 6px; }
+.datos-transferencia dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: .9rem; align-items: center; }
+.datos-transferencia dt { color: var(--texto-suave); }
+.datos-transferencia dd { margin: 0; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.datos-transferencia dd strong { font-family: "Montserrat", sans-serif; letter-spacing: .03em; }
+.dt-nota { font-size: .82rem; color: var(--texto-suave); margin-top: 8px; }
+.form-banco { max-width: 680px; }
+.form-banco textarea { font: inherit; width: 100%; padding: 10px 12px; border: 1px solid var(--borde); border-radius: 10px; resize: vertical; }
+.tabs-admin { max-width: 420px; grid-template-columns: repeat(3, 1fr); }
 .pago-total { font-size: .88rem; font-weight: 700; color: var(--primario); background: var(--primario-suave); padding: 8px 12px; border-radius: 10px; margin: 0 0 12px; }
 .pago-acciones { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
 .pago-acciones .btn { flex: 1; }

@@ -322,12 +322,46 @@ function pintarClientas() {
 $("buscar-clienta").addEventListener("input", pintarClientas);
 
 // ---------------------------------------------------------------------
+// Ajustes: datos para transferencia (ajustes/pagos)
+// ---------------------------------------------------------------------
+const CAMPOS_BANCO = { banco: "banco-nombre", tipoCuenta: "banco-tipo", numeroCuenta: "banco-numero", titular: "banco-titular", nota: "banco-nota" };
+
+async function cargarBanco() {
+  const d = (await get(ref(db, "ajustes/pagos"))).val() || {};
+  Object.entries(CAMPOS_BANCO).forEach(([clave, id]) => {
+    if (typeof d[clave] === "string") $(id).value = d[clave];
+  });
+}
+
+$("form-banco").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const datos = {};
+  Object.entries(CAMPOS_BANCO).forEach(([clave, id]) => {
+    const v = $(id).value.trim().replace(/[ \t]+/g, " ");
+    if (v) datos[clave] = v;
+  });
+  if (!datos.banco || !datos.numeroCuenta || !datos.titular) {
+    $("msg-banco").textContent = "Completa banco, número de cuenta y titular.";
+    return;
+  }
+  $("msg-banco").textContent = "";
+  try {
+    await set(ref(db, "ajustes/pagos"), { ...datos, actualizadoEn: serverTimestamp() });
+    toast("Datos de transferencia guardados");
+  } catch (err) {
+    console.error(err);
+    $("msg-banco").textContent = "No se pudo guardar. ¿Publicaste las reglas nuevas de Firebase?";
+  }
+});
+
+// ---------------------------------------------------------------------
 // Navegación y arranque
 // ---------------------------------------------------------------------
 document.querySelectorAll(".tabs-admin .tab").forEach((t) => t.addEventListener("click", () => {
   document.querySelectorAll(".tabs-admin .tab").forEach((x) => x.classList.toggle("active", x === t));
   $("tab-pagos").hidden = t.dataset.vista !== "pagos";
   $("tab-clientas").hidden = t.dataset.vista !== "clientas";
+  $("tab-ajustes").hidden = t.dataset.vista !== "ajustes";
 }));
 
 document.querySelectorAll("#filtro-pagos .chip").forEach((b) => b.addEventListener("click", () => {
@@ -360,6 +394,7 @@ async function iniciar(user) {
     return;
   }
   await cargarTodo();
+  cargarBanco().catch((err) => console.error(err));
   mostrar("admin");
 }
 

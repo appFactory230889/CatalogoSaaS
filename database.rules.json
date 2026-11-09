@@ -323,6 +323,33 @@
           ".validate": false
         }
       }
+    },
+    "ajustes": {
+      "pagos": {
+        ".read": "auth != null",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "banco": {
+          ".validate": "newData.isString() && newData.val().length <= 60"
+        },
+        "tipoCuenta": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "numeroCuenta": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "titular": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "nota": {
+          ".validate": "newData.isString() && newData.val().length <= 300"
+        },
+        "actualizadoEn": {
+          ".validate": "newData.isNumber()"
+        },
+        "$otro": {
+          ".validate": false
+        }
+      }
     }
   }
 }
