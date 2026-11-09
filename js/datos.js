@@ -9,7 +9,10 @@
 //     codigoDisponible   siguiente número de producto (empieza en 1 → "0001"); nunca retrocede
 //     totalItems         productos que existen hoy (activos + inhabilitados); al borrar, baja 1
 //     ultimoBorrado      número del último producto borrado (lo exigen las reglas)
-//   planes/{uid}/limite  solo lo edita App Factory (consola). Si no existe → 250
+//   planes/{uid}         SOLO lo edita App Factory (panel admin.html)
+//     plan "gratis"|"premium", limite, vigenteHasta (ms), metodo "transferencia"|"paddle"|"manual"
+//   pagos/{uid}/{id}     pagos reportados por la clienta (comprobante) → admin aprueba o rechaza
+//   admins/{uid} = true  cuentas de App Factory con acceso a admin.html (se crea en la consola)
 //   productos/{uid}/{numero}
 //     numero, codigo "001-0001", categoria, precio, foto, rutaFoto, disponible, creadoEn
 //     precioDesde                        el precio más bajo (categorías con presentaciones)
@@ -209,19 +212,66 @@ export function tieneVariosPrecios(presentaciones) {
   return todos.size > 1;
 }
 
-/** Lee el negocio con valores seguros. */
+// ---------------------------------------------------------------------
+// Planes y suscripción
+// ---------------------------------------------------------------------
+export const DIAS_GRACIA = 5;            // días después del vencimiento antes de volver al plan gratis
+const DIA = 24 * 60 * 60 * 1000;          // (las reglas de Firebase usan el mismo valor: 432000000 ms)
+export const AVISAR_DIAS_ANTES = 5;       // aviso de "tu plan vence pronto"
+
+/**
+ * Interpreta planes/{uid}. Un plan Premium está activo hasta vigenteHasta + días de gracia;
+ * después la cuenta vuelve sola al plan gratis (sin borrar nada).
+ */
+export function leerPlan(nodo, ahora = Date.now()) {
+  const d = nodo && typeof nodo === "object" ? nodo : {};
+  const vigenteHasta = num(d.vigenteHasta, 0);
+  const esPremium = d.plan === "premium" && vigenteHasta > 0;
+  const activo = esPremium && ahora < vigenteHasta + DIAS_GRACIA * DIA;
+  const enGracia = activo && ahora >= vigenteHasta;
+  const diasRestantes = esPremium ? Math.ceil((vigenteHasta - ahora) / DIA) : 0;
+  return {
+    plan: activo ? "premium" : "gratis",
+    vigenteHasta,
+    activo,
+    enGracia,
+    vencePronto: activo && !enGracia && diasRestantes <= AVISAR_DIAS_ANTES,
+    vencido: esPremium && !activo,
+    diasRestantes,
+    limite: activo ? Math.max(LIMITE_GRATIS, num(d.limite, LIMITE_GRATIS)) : LIMITE_GRATIS,
+    metodo: typeof d.metodo === "string" ? d.metodo : ""
+  };
+}
+
+export const formatearFecha = (ms) =>
+  new Date(ms).toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
+
+/** Suma meses a una fecha (si vence el 31 y el mes no tiene 31, queda en el último día). */
+export function sumarMeses(ms, meses) {
+  const d = new Date(ms);
+  const dia = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + meses);
+  const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(dia, ultimo));
+  return d.getTime();
+}
+
+/** Lee el negocio con valores seguros (incluye su plan). */
 export async function leerNegocio(uid) {
-  const [snapNegocio, snapLimite] = await Promise.all([
+  const [snapNegocio, snapPlan] = await Promise.all([
     get(ref(db, `negocios/${uid}`)),
-    get(ref(db, `planes/${uid}/limite`)).catch(() => null)
+    get(ref(db, `planes/${uid}`)).catch(() => null)
   ]);
   const d = snapNegocio.val() || {};
+  const plan = leerPlan(snapPlan?.val());
   return {
     nombre: typeof d.nombre === "string" ? d.nombre.trim() : "",
     codigoCliente: num(d.codigoCliente, 0),
     codigoDisponible: num(d.codigoDisponible, 0),
     totalItems: num(d.totalItems, 0),
-    limite: Math.max(LIMITE_GRATIS, num(snapLimite?.val(), LIMITE_GRATIS))
+    limite: plan.limite,
+    plan
   };
 }
 

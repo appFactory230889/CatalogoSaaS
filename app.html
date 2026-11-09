@@ -19,6 +19,7 @@
     </div>
     <div class="topbar-derecha">
       <span class="contacto" id="contacto"></span>
+      <a id="link-admin" href="admin.html" class="btn btn-fantasma" hidden>Admin</a>
       <button type="button" id="btn-salir" class="btn btn-fantasma">Salir</button>
     </div>
   </header>
@@ -62,6 +63,16 @@
         </div>
       </div>
 
+      <!-- Estado del plan + reportar pago -->
+      <div id="plan" class="plan">
+        <div class="plan-info">
+          <span id="plan-etiqueta" class="plan-etiqueta">Plan Gratis</span>
+          <p id="plan-detalle" class="plan-detalle"></p>
+        </div>
+        <button type="button" id="btn-reportar" class="btn btn-fantasma">🧾 Reportar pago</button>
+      </div>
+      <div id="mis-pagos" class="mis-pagos" hidden></div>
+
       <div class="compartir">
         <div class="compartir-texto">
           <strong>Tu catálogo para clientas</strong>
@@ -80,6 +91,46 @@
   <footer class="pie">
     <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
   </footer>
+
+  <dialog id="dialogo-pago" class="dialogo">
+    <form id="form-pago" novalidate>
+      <h2>Reportar pago</h2>
+      <p class="sub">Sube la foto o el PDF del comprobante de tu transferencia. App Factory lo revisará y activará tu plan.</p>
+      <div class="grid-atributos">
+        <label class="campo">
+          <span>Monto pagado (US$)</span>
+          <input id="pago-monto" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" required>
+        </label>
+        <label class="campo">
+          <span>Meses que pagas</span>
+          <select id="pago-meses">
+            <option value="1">1 mes</option>
+            <option value="2">2 meses</option>
+            <option value="3">3 meses</option>
+            <option value="6">6 meses</option>
+            <option value="12">12 meses</option>
+          </select>
+        </label>
+        <label class="campo">
+          <span>Banco o medio de pago</span>
+          <input id="pago-banco" type="text" maxlength="60" placeholder="Ej. Banco Agrícola" required>
+        </label>
+        <label class="campo">
+          <span>N.º de referencia (opcional)</span>
+          <input id="pago-referencia" type="text" maxlength="60" placeholder="Ej. 123456789">
+        </label>
+      </div>
+      <label class="campo">
+        <span>Comprobante (foto o PDF)</span>
+        <input id="pago-comprobante" type="file" accept="image/*,application/pdf" required>
+      </label>
+      <p id="msg-pago" class="mensaje" role="alert"></p>
+      <div class="acciones">
+        <button type="button" id="btn-cancelar-pago" class="btn btn-fantasma">Cancelar</button>
+        <button type="submit" id="btn-enviar-pago" class="btn btn-primario">Enviar comprobante</button>
+      </div>
+    </form>
+  </dialog>
 
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 

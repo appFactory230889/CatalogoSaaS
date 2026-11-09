@@ -6,6 +6,7 @@ import {
   CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan
 } from "./datos.js";
 import { linkCatalogo, compartirLink } from "./compartir.js";
+import { iniciarPagos } from "./pagos.js";
 
 const $ = (id) => document.getElementById(id);
 const vistas = {
@@ -86,6 +87,7 @@ async function mostrarPanel(negocio) {
   $("saludo").textContent = `Hola, ${negocio.nombre}`;
   document.title = `${negocio.nombre} · App Factory Catalog`;
   pintarUso(negocio);
+  iniciarPagos({ usuario, negocio, toast });
   pintarCategorias({});
   mostrarVista("panel");
   pintarCategorias(await contarPorCategoria(usuario.uid));
@@ -150,6 +152,10 @@ if (!configLista) {
     }
     usuario = user;
     $("contacto").textContent = user.email || "";
+    // El botón "Admin" solo aparece para las cuentas de App Factory (admins/{uid} = true).
+    get(ref(db, `admins/${user.uid}`))
+      .then((s) => { $("link-admin").hidden = s.val() !== true; })
+      .catch(() => {});
     cargarNegocio(user);
   });
 }

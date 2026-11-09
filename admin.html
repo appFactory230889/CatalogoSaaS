@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Administración · App Factory Catalog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="img/logo-catalogo.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-page admin-page">
+  <header class="topbar">
+    <div class="brand brand-sm">
+      <img class="brand-logo" src="img/logo-catalogo.png" alt="" width="46" height="46">
+      <p class="brand-name">App Factory<span class="brand-sub">Admin</span></p>
+    </div>
+    <div class="topbar-derecha">
+      <a href="app.html" class="btn btn-fantasma">Mi panel</a>
+    </div>
+  </header>
+
+  <main class="contenido contenido-ancho">
+    <section id="vista-cargando" class="cargando" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando…</p>
+    </section>
+
+    <!-- Cuenta sin permiso de administradora -->
+    <section id="vista-sin-acceso" class="tarjeta onboarding" hidden>
+      <p class="emoji-grande" aria-hidden="true">🔒</p>
+      <h1>Sin acceso</h1>
+      <p class="sub">Esta cuenta no es administradora de App Factory.</p>
+      <div class="instrucciones">
+        <p>Si esta es tu cuenta de App Factory, actívala una sola vez:</p>
+        <ol>
+          <li>En Firebase Console → <strong>Realtime Database → Datos</strong>.</li>
+          <li>Junto a la raíz, toca <strong>+</strong> y crea la clave <code>admins</code>.</li>
+          <li>Dentro de <code>admins</code> agrega la clave <code id="mi-uid"></code> con el valor <code>true</code>.</li>
+        </ol>
+        <button type="button" id="btn-copiar-uid" class="btn btn-fantasma btn-sm">Copiar mi UID</button>
+      </div>
+    </section>
+
+    <section id="vista-admin" hidden>
+      <h1 class="saludo">Panel de App Factory</h1>
+      <p class="sub">Suscripciones y pagos de App Factory Catalog.</p>
+
+      <div class="resumen-admin">
+        <div class="dato"><span id="dato-clientas">0</span><small>Clientas</small></div>
+        <div class="dato"><span id="dato-premium">0</span><small>Premium activas</small></div>
+        <div class="dato destacado"><span id="dato-pendientes">0</span><small>Pagos por revisar</small></div>
+        <div class="dato"><span id="dato-ingresos">$0</span><small>Aprobado este mes</small></div>
+      </div>
+
+      <div class="tabs tabs-admin" role="tablist">
+        <button type="button" class="tab active" data-vista="pagos" role="tab">Pagos</button>
+        <button type="button" class="tab" data-vista="clientas" role="tab">Clientas</button>
+      </div>
+
+      <!-- Pagos -->
+      <section id="tab-pagos">
+        <div class="chips" id="filtro-pagos">
+          <button type="button" class="chip activo" data-filtro="pendiente">Por revisar</button>
+          <button type="button" class="chip" data-filtro="aprobado">Aprobados</button>
+          <button type="button" class="chip" data-filtro="rechazado">Rechazados</button>
+          <button type="button" class="chip" data-filtro="todos">Todos</button>
+        </div>
+        <div id="lista-pagos" class="lista-pagos"></div>
+        <p id="pagos-vacio" class="vacio" hidden>No hay pagos en esta lista.</p>
+      </section>
+
+      <!-- Clientas -->
+      <section id="tab-clientas" hidden>
+        <input id="buscar-clienta" type="search" class="buscar-admin" placeholder="Buscar por nombre, correo o código">
+        <div class="tabla-scroll">
+          <table class="tabla-admin">
+            <thead>
+              <tr><th>Código</th><th>Negocio</th><th>Productos</th><th>Plan</th><th>Vence</th><th></th></tr>
+            </thead>
+            <tbody id="tabla-clientas"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <!-- Aprobar pago / gestionar plan -->
+  <dialog id="dialogo-plan" class="dialogo">
+    <form id="form-plan" novalidate>
+      <h2 id="plan-titulo">Aprobar pago</h2>
+      <p class="sub" id="plan-subtitulo"></p>
+      <div class="grid-atributos">
+        <label class="campo">
+          <span>Meses a sumar</span>
+          <input id="plan-meses" type="number" min="1" max="24" step="1" value="1">
+        </label>
+        <label class="campo">
+          <span>Límite de productos</span>
+          <input id="plan-limite" type="number" min="250" max="100000" step="50" value="1000">
+        </label>
+      </div>
+      <p class="ayuda" id="plan-resultado"></p>
+      <p id="msg-plan" class="mensaje" role="alert"></p>
+      <div class="acciones acciones-separadas">
+        <button type="button" id="btn-plan-gratis" class="btn btn-peligro btn-sm" hidden>Pasar a plan gratis</button>
+        <span class="espacio"></span>
+        <button type="button" id="btn-plan-cancelar" class="btn btn-fantasma">Cancelar</button>
+        <button type="submit" id="btn-plan-guardar" class="btn btn-primario">Aprobar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="js/aviso-carga.js"></script>
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

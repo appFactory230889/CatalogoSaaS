@@ -444,6 +444,88 @@ a.btn, a.categoria { text-decoration: none; }
 .producto-acciones svg { width: 15px; height: 15px; }
 .btn-descargar { width: 100%; margin-top: 14px; }
 
+/* ---------- Plan de la clienta ---------- */
+.plan {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  margin-top: 14px; padding: 14px 16px; border-radius: var(--radio);
+  background: var(--superficie); border: 1px solid var(--borde);
+}
+.plan-info { flex: 1; min-width: 220px; }
+.plan-etiqueta {
+  display: inline-block; font-size: .75rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 99px; background: #EEF1F7; color: var(--texto-suave);
+}
+.plan-detalle { font-size: .86rem; color: var(--texto-suave); margin-top: 6px; }
+.plan.premium { border-color: #C9D3EE; background: linear-gradient(135deg, #F4F7FF, #FFF7EF); }
+.plan.premium .plan-etiqueta { background: var(--primario); color: #fff; }
+.plan.pronto, .plan.gracia { border-color: #F8C9A3; background: #FFF8F1; }
+.plan.gracia .plan-etiqueta { background: var(--acento); color: #1B1205; }
+.plan.vencido { border-color: #F3B4B4; background: #FFF6F6; }
+.plan.vencido .plan-detalle { color: #9B2C2C; }
+
+.mis-pagos { margin-top: 8px; padding: 10px 16px; border-radius: var(--radio); background: var(--superficie); border: 1px dashed var(--borde); font-size: .84rem; }
+.mis-pagos-titulo { font-weight: 700; color: var(--texto-suave); font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.pago-fila { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 4px 0; }
+.pago-fecha { color: var(--texto-suave); min-width: 120px; }
+.pago-monto { flex: 1; font-weight: 600; }
+.pago-motivo { font-size: .8rem; color: #9B2C2C; margin: 0 0 4px; }
+.estado-pago { font-size: .72rem; font-weight: 800; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+.estado-pago.pendiente { background: #FFF1DC; color: #8A4B00; }
+.estado-pago.aprobado { background: #DDF5E6; color: #1E6B3C; }
+.estado-pago.rechazado { background: #FDE2E2; color: #9B2C2C; }
+
+/* Diálogos con formulario */
+.dialogo {
+  border: 0; border-radius: 18px; padding: 22px; width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px); overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.dialogo::backdrop { background: rgba(15, 23, 48, .55); }
+.dialogo h2 { margin: 0 0 4px; font-size: 1.2rem; }
+.dialogo .grid-atributos { margin-top: 14px; }
+.dialogo input[type=file] { padding: 9px; }
+.acciones-separadas { align-items: center; flex-wrap: wrap; }
+.acciones-separadas .espacio { flex: 1; }
+.btn-peligro { background: #FDE2E2; color: #9B2C2C; border-color: #F3B4B4; }
+.btn-peligro:hover:not(:disabled) { background: #FBCFCF; }
+
+/* ---------- Panel de administración ---------- */
+.contenido-ancho { max-width: 1120px; }
+.instrucciones { text-align: left; margin-top: 18px; font-size: .9rem; }
+.instrucciones ol { padding-left: 20px; }
+.instrucciones code { background: #EEF1F7; padding: 1px 6px; border-radius: 6px; word-break: break-all; }
+.resumen-admin { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 18px; }
+.dato { background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); padding: 14px 16px; }
+.dato span { display: block; font-family: "Montserrat", sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--primario); }
+.dato small { color: var(--texto-suave); font-size: .8rem; }
+.dato.destacado { border-color: #F8C9A3; background: #FFF8F1; }
+.dato.destacado span { color: #C2410C; }
+.tabs-admin { margin: 22px 0 14px; max-width: 320px; }
+.lista-pagos { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.pago-tarjeta { display: flex; gap: 14px; background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); padding: 12px; }
+.pago-comprobante { flex: 0 0 96px; height: 128px; border-radius: 10px; overflow: hidden; background: #EEF1F7; display: grid; place-items: center; text-decoration: none; }
+.pago-comprobante img { width: 100%; height: 100%; object-fit: cover; }
+.pago-comprobante .pdf { font-size: .8rem; font-weight: 700; color: var(--primario); text-align: center; }
+.pago-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; font-size: .85rem; }
+.pago-cabecera { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.pago-negocio { font-size: .92rem; }
+.pago-contacto, .pago-detalle { color: var(--texto-suave); word-break: break-word; }
+.pago-montos strong { font-size: 1.1rem; color: var(--texto); }
+.pago-acciones { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+.pago-acciones .btn { flex: 1; }
+.buscar-admin { max-width: 340px; margin-bottom: 12px; }
+.tabla-scroll { overflow-x: auto; background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio); }
+.tabla-admin { width: 100%; border-collapse: collapse; font-size: .86rem; }
+.tabla-admin th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--texto-suave); padding: 10px 12px; border-bottom: 1px solid var(--borde); white-space: nowrap; }
+.tabla-admin td { padding: 10px 12px; border-bottom: 1px solid var(--borde); vertical-align: middle; }
+.tabla-admin tr:last-child td { border-bottom: 0; }
+.tabla-admin td small { display: block; color: var(--texto-suave); }
+.tabla-admin .mono { font-family: "Montserrat", sans-serif; font-weight: 800; color: var(--primario); }
+.plan-chip { font-size: .72rem; font-weight: 800; padding: 2px 9px; border-radius: 99px; white-space: nowrap; }
+.plan-chip.premium { background: var(--primario); color: #fff; }
+.plan-chip.gracia { background: var(--acento); color: #1B1205; }
+.plan-chip.vencido { background: #FDE2E2; color: #9B2C2C; }
+.plan-chip.gratis { background: #EEF1F7; color: var(--texto-suave); }
+
 /* Botón compartir en el panel */
 .compartir {
   display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;

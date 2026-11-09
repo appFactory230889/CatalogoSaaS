@@ -17,8 +17,29 @@
       }
     },
     "planes": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
       "$uid": {
-        ".read": "auth != null && auth.uid === $uid"
+        ".read": "(auth != null && auth.uid === $uid) || (auth != null && root.child('admins').child(auth.uid).val() === true)",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".validate": "newData.hasChildren(['plan', 'limite', 'vigenteHasta'])",
+        "plan": {
+          ".validate": "newData.isString() && newData.val().matches(/^(gratis|premium)$/)"
+        },
+        "limite": {
+          ".validate": "newData.isNumber() && newData.val() >= 250 && newData.val() <= 100000"
+        },
+        "vigenteHasta": {
+          ".validate": "newData.isNumber()"
+        },
+        "metodo": {
+          ".validate": "newData.isString() && newData.val().matches(/^(transferencia|paddle|manual)$/)"
+        },
+        "actualizadoEn": {
+          ".validate": "newData.isNumber()"
+        },
+        "$otro": {
+          ".validate": false
+        }
       }
     },
     "negocios": {
@@ -44,7 +65,7 @@
           ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().parent().parent().child('productos').child($uid).child(data.val() + '').exists() && !root.child('productos').child($uid).child(data.val() + '').exists()))"
         },
         "totalItems": {
-          ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 0) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().child('codigoDisponible').val() === data.parent().child('codigoDisponible').val() + 1 && (newData.val() <= 250 || newData.val() <= root.child('planes').child($uid).child('limite').val())) || (newData.val() === data.val() - 1 && root.child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists() && !newData.parent().parent().parent().child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists()))"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 0) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().child('codigoDisponible').val() === data.parent().child('codigoDisponible').val() + 1 && (newData.val() <= 250 || (root.child('planes').child($uid).child('plan').val() === 'premium' && newData.val() <= root.child('planes').child($uid).child('limite').val() && root.child('planes').child($uid).child('vigenteHasta').val() + 432000000 > now))) || (newData.val() === data.val() - 1 && root.child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists() && !newData.parent().parent().parent().child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists()))"
         },
         "ultimoBorrado": {
           ".validate": "newData.isString()"
@@ -52,7 +73,8 @@
         "$otro": {
           ".validate": false
         }
-      }
+      },
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true"
     },
     "productos": {
       "$uid": {
@@ -227,6 +249,57 @@
                 ".validate": false
               }
             }
+          },
+          "$otro": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "pagos": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        "$id": {
+          ".write": "(auth != null && auth.uid === $uid && !data.exists() && newData.child('estado').val() === 'pendiente' && !newData.child('revisadoEn').exists() && !newData.child('motivo').exists()) || (auth != null && root.child('admins').child(auth.uid).val() === true && data.exists() && newData.exists())",
+          ".validate": "newData.hasChildren(['monto', 'meses', 'banco', 'comprobante', 'rutaComprobante', 'tipoArchivo', 'estado', 'creadoEn'])",
+          "monto": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 100000"
+          },
+          "meses": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 24"
+          },
+          "banco": {
+            ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+          },
+          "referencia": {
+            ".validate": "newData.isString() && newData.val().length <= 60"
+          },
+          "comprobante": {
+            ".validate": "newData.isString() && newData.val().beginsWith('https://')"
+          },
+          "rutaComprobante": {
+            ".validate": "newData.isString() && newData.val().beginsWith('comprobantes/' + $uid + '/')"
+          },
+          "tipoArchivo": {
+            ".validate": "newData.isString() && newData.val().matches(/^(image\\/.+|application\\/pdf)$/)"
+          },
+          "estado": {
+            ".validate": "newData.isString() && newData.val().matches(/^(pendiente|aprobado|rechazado)$/)"
+          },
+          "motivo": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
+          "creadoEn": {
+            ".validate": "newData.isNumber()"
+          },
+          "revisadoEn": {
+            ".validate": "newData.isNumber()"
           },
           "$otro": {
             ".validate": false
