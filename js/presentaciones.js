@@ -1,16 +1,18 @@
-// Presentaciones (telas) con precio por talla — estilo SHEIN/TEMU.
+// Presentaciones (tela en Ropa, color en Zapatos…) con precio por talla — estilo SHEIN/TEMU.
 //  - crearEditorPresentaciones: lo usa la dueña al subir un producto de Ropa.
 //  - crearSelectorPresentaciones: lo ve la clienta en el catálogo (elige tela y talla).
 import { formatearPrecio, rangoPrecios } from "./datos.js";
+import { textos } from "./especificaciones.js";
 
 // =====================================================================
 // Editor (administradora)
 // =====================================================================
-export function crearEditorPresentaciones({ contChips, contPresentaciones, toast }) {
-  let config = { telas: [], tallas: [] };
+export function crearEditorPresentaciones({ contChips, contPresentaciones, toast, variante }) {
+  const tx = textos(variante);
+  let config = { variantes: [], tallas: [] };
   let borrador = {}; // { telaId: { disponible, mismoPrecio, precio, tallas: { tallaId: { activa, precio } } } }
 
-  const nombreTela = (id) => config.telas.find((t) => t.id === id)?.nombre ?? "";
+  const nombreTela = (id) => config.variantes.find((t) => t.id === id)?.nombre ?? "";
 
   function presentacionVacia() {
     const tallas = {};
@@ -20,7 +22,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
 
   function pintarChips() {
     contChips.innerHTML = "";
-    config.telas.forEach((t) => {
+    config.variantes.forEach((t) => {
       const b = document.createElement("button");
       b.type = "button";
       b.className = "chip" + (borrador[t.id] ? " activo" : "");
@@ -37,7 +39,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
 
   function pintarPresentaciones() {
     contPresentaciones.innerHTML = "";
-    config.telas.filter((t) => borrador[t.id]).forEach((t) => {
+    config.variantes.filter((t) => borrador[t.id]).forEach((t) => {
       const pr = borrador[t.id];
       config.tallas.forEach((ta) => { if (!pr.tallas[ta.id]) pr.tallas[ta.id] = { activa: false, precio: "" }; });
 
@@ -51,7 +53,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
             <span class="interruptor-pista" aria-hidden="true"></span>
             <span>Disponible</span>
           </label>
-          <button type="button" class="btn-icono" data-acc="quitar" title="Quitar presentación" aria-label="Quitar presentación">✕</button>
+          <button type="button" class="btn-icono" data-acc="quitar" title="Quitar" aria-label="Quitar">✕</button>
         </div>
         <label class="check-linea">
           <input type="checkbox" data-campo="mismo"> Mismo precio para todas las tallas
@@ -85,7 +87,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
       inputUnico.addEventListener("input", () => (pr.precio = inputUnico.value));
 
       caja.querySelector(".ayuda-tallas").textContent = pr.mismoPrecio
-        ? "Marca las tallas en que viene esta tela:"
+        ? `Marca las tallas en que viene ${tx.esta.toLowerCase()} ${variante.singular}:`
         : "Marca las tallas y escribe el precio de cada una:";
 
       const grid = caja.querySelector(".grid-tallas");
@@ -107,7 +109,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
         grid.appendChild(celda);
       });
 
-      const otras = config.telas.filter((o) => o.id !== t.id && borrador[o.id]);
+      const otras = config.variantes.filter((o) => o.id !== t.id && borrador[o.id]);
       const pie = caja.querySelector(".presentacion-pie");
       if (otras.length) {
         pie.innerHTML = `<span>Copiar tallas y precios de:</span>`;
@@ -140,8 +142,8 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
 
   /** Devuelve { error } o { presentaciones, precioDesde } listo para Firebase. */
   function construir() {
-    const ids = config.telas.map((t) => t.id).filter((id) => borrador[id]);
-    if (!ids.length) return { error: "Elige al menos una tela (presentación)." };
+    const ids = config.variantes.map((t) => t.id).filter((id) => borrador[id]);
+    if (!ids.length) return { error: `Elige al menos ${tx.un} ${variante.singular}.` };
     const presentaciones = {};
     for (const id of ids) {
       const pr = borrador[id];
@@ -173,18 +175,19 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
 // =====================================================================
 // Selector (clienta): elige tela y talla, el precio se actualiza
 // =====================================================================
-export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elTalla, elPrecio, elNota }) {
+export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elTalla, elPrecio, elNota, elGuia }) {
   let producto = null;
-  let config = { telas: [], tallas: [] };
+  let config = { variantes: [], tallas: [] };
+  let tx = { ...textos({ singular: "opción", plural: "opciones", femenino: true }), singular: "opción" };
   let tela = null, talla = null;
 
   const nombreDe = (lista, id) => lista.find((x) => x.id === id)?.nombre ?? "";
 
   function pintar() {
     const pres = producto.presentaciones;
-    const telas = config.telas.filter((t) => pres[t.id]);
+    const telas = config.variantes.filter((t) => pres[t.id]);
     // Telas que ya no están en la configuración siguen visibles con su id
-    Object.keys(pres).forEach((id) => { if (!telas.some((t) => t.id === id)) telas.push({ id, nombre: "Otra tela" }); });
+    Object.keys(pres).forEach((id) => { if (!telas.some((t) => t.id === id)) telas.push({ id, nombre: "Otra" }); });
 
     if (!pres[tela]) {
       tela = (telas.find((t) => pres[t.id].disponible) || telas[0])?.id ?? null;
@@ -194,7 +197,7 @@ export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elT
     if (pr && !(talla in pr.precios)) talla = null;
 
     if (!pr) { elPrecio.textContent = ""; elNota.textContent = ""; }
-    else if (!pr.disponible) { elPrecio.textContent = rangoPrecios(pr.precios); elNota.textContent = "Esta tela está agotada."; }
+    else if (!pr.disponible) { elPrecio.textContent = rangoPrecios(pr.precios); elNota.textContent = `${tx.esta} ${tx.singular} está ${tx.agotado}.`; }
     else if (talla) { elPrecio.textContent = formatearPrecio(pr.precios[talla]); elNota.textContent = ""; }
     else {
       elPrecio.textContent = rangoPrecios(pr.precios);
@@ -219,6 +222,10 @@ export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elT
       if (!tallas.some((x) => x.id === id)) tallas.push({ id, nombre: "Otra" });
     }));
     elTalla.textContent = talla ? nombreDe(tallas, talla) : "";
+    if (elGuia) {
+      const cm = config.tallas.find((t) => t.id === talla)?.cm;
+      elGuia.textContent = cm ? `Largo del pie: ${cm} cm` : "";
+    }
     contTallas.innerHTML = "";
     tallas.filter((ta) => Object.values(pres).some((p) => ta.id in p.precios)).forEach((ta) => {
       const existe = pr && ta.id in pr.precios;
@@ -233,8 +240,12 @@ export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elT
   }
 
   return {
-    mostrar(p, c) { producto = p; config = c; tela = null; talla = null; pintar(); },
+    mostrar(p, c, variante) {
+      producto = p; config = c; tela = null; talla = null;
+      if (variante) tx = { ...textos(variante), singular: variante.singular };
+      pintar();
+    },
     /** Tela y talla elegidas (para un futuro pedido por WhatsApp). */
-    seleccion() { return { tela: nombreDe(config.telas, tela), talla: nombreDe(config.tallas, talla) }; }
+    seleccion() { return { variante: nombreDe(config.variantes, tela), talla: nombreDe(config.tallas, talla) }; }
   };
 }

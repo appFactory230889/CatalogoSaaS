@@ -6,8 +6,9 @@ import {
 } from "./firebase.js";
 import {
   categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num,
-  asegurarConfigRopa, leerPresentaciones, tieneVariosPrecios
+  asegurarConfigCategoria, leerPresentaciones, leerAtributos, tieneVariosPrecios
 } from "./datos.js";
+import { especDe, textos } from "./especificaciones.js";
 import { crearEditorPresentaciones } from "./presentaciones.js";
 import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
 import { dibujarCodigo } from "./marca-codigo.js";
@@ -20,8 +21,9 @@ let usuario = null;
 let negocio = null;
 let productos = [];
 let imagen = null; // HTMLImageElement elegido
-let configRopa = { telas: [], tallas: [] };
-const usaPresentaciones = categoria?.id === "ropa";
+const espec = especDe(categoria?.id);           // null = categoría sin especificaciones aún
+const usaPresentaciones = !!espec;
+let configCat = { variantes: [], tallas: [], listas: {} };
 let editor = null;
 
 // ---------- utilidades de UI ----------
@@ -76,12 +78,14 @@ function pintarProductos() {
     card.querySelector(".producto-codigo").textContent = p.codigo;
     card.querySelector(".producto-precio").textContent =
       (tieneVariosPrecios(p.presentaciones) ? "desde " : "") + formatearPrecio(p.precio);
-    const telas = Object.keys(p.presentaciones)
-      .map((id) => configRopa.telas.find((t) => t.id === id)?.nombre).filter(Boolean);
-    if (telas.length) {
+    const variantes = Object.keys(p.presentaciones)
+      .map((id) => configCat.variantes.find((t) => t.id === id)?.nombre).filter(Boolean);
+    const tipo = p.atributos.find((a) => a.clave === "tipo")?.nombre;
+    const detalle = [tipo, variantes.join(" · ")].filter(Boolean).join(" — ");
+    if (detalle) {
       const det = document.createElement("p");
       det.className = "producto-detalle";
-      det.textContent = telas.join(" · ");
+      det.textContent = detalle;
       card.querySelector(".producto-info").insertBefore(det, card.querySelector(".producto-info").children[1]);
     }
 
@@ -105,6 +109,7 @@ async function cargarProductos() {
       codigo: d.codigo,
       precio: num(d.precioDesde, num(d.precio)),
       presentaciones: leerPresentaciones(d.presentaciones),
+      atributos: leerAtributos(categoria.id, d.atributos, configCat),
       foto: d.foto,
       rutaFoto: typeof d.rutaFoto === "string" ? d.rutaFoto : "",
       disponible: d.disponible !== false
@@ -135,15 +140,53 @@ async function iniciar(user) {
     texto: `Mira ${categoria.nombre} en el catálogo de ${negocio.nombre}`
   }, toast));
   if (usaPresentaciones) {
-    configRopa = await asegurarConfigRopa(user.uid);
-    editor = crearEditorPresentaciones({ contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast });
-    editor.setConfig(configRopa);
+    configCat = await asegurarConfigCategoria(user.uid, categoria.id);
+    const v = espec.variante, tx = textos(v);
+    $("titulo-presentaciones").textContent = `Presentaciones (${v.plural})`;
+    $("ayuda-presentaciones").textContent =
+      `Toca ${v.femenino ? "las" : "los"} ${v.plural} en que viene este producto. Cada ${v.singular} tiene sus propios precios por talla.`;
+    $("link-config").href = `configuracion.html?c=${categoria.id}`;
+    $("link-config").textContent = `Editar ${v.plural} y tallas`;
+    editor = crearEditorPresentaciones({
+      contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast, variante: v
+    });
+    editor.setConfig(configCat);
+    pintarSelectoresAtributos();
     $("bloque-precio-simple").hidden = true;
     $("bloque-presentaciones").hidden = false;
   }
   await cargarProductos();
   $("vista-cargando").hidden = true;
   $("vista-categoria").hidden = false;
+}
+
+// ---------- atributos (tipo, tacón, calce…) ----------
+function pintarSelectoresAtributos() {
+  const cont = $("bloque-atributos");
+  cont.innerHTML = "";
+  espec.atributos.forEach((a) => {
+    const opciones = a.lista ? configCat.listas[a.lista] || [] : a.opciones;
+    const label = document.createElement("label");
+    label.className = "campo";
+    label.innerHTML = `<span></span><select data-atributo="${a.clave}"><option value="">Sin especificar</option></select>`;
+    label.querySelector("span").textContent = a.nombre;
+    const select = label.querySelector("select");
+    opciones.forEach((o) => {
+      const opt = document.createElement("option");
+      opt.value = o.id;
+      opt.textContent = o.nombre;
+      select.appendChild(opt);
+    });
+    cont.appendChild(label);
+  });
+}
+
+function leerSelectoresAtributos() {
+  const atributos = {};
+  document.querySelectorAll("#bloque-atributos select").forEach((s) => {
+    if (s.value) atributos[s.dataset.atributo] = s.value;
+  });
+  return atributos;
 }
 
 // ---------- foto + código ----------
@@ -190,6 +233,7 @@ function abrirFormulario() {
   $("input-foto").value = "";
   $("precio").value = "";
   editor?.reiniciar();
+  document.querySelectorAll("#bloque-atributos select").forEach((s) => (s.value = ""));
   $("lienzo").hidden = true;
   $("selector-texto").hidden = false;
   $("msg-producto").textContent = "";
@@ -217,6 +261,8 @@ $("btn-guardar").addEventListener("click", async () => {
     if (r.error) return (msg.textContent = r.error);
     precio = r.precioDesde;
     extra = { precioDesde: r.precioDesde, presentaciones: r.presentaciones };
+    const atributos = leerSelectoresAtributos();
+    if (Object.keys(atributos).length) extra.atributos = atributos;
   } else {
     precio = Math.round(parseFloat($("precio").value) * 100) / 100;
     if (!Number.isFinite(precio) || precio <= 0) return (msg.textContent = "Escribe un precio válido.");
@@ -264,7 +310,8 @@ $("btn-guardar").addEventListener("click", async () => {
     negocio.codigoDisponible = numero + 1;
     negocio.totalItems += 1;
     pintarUso();
-    productos.unshift({ numero, codigo, precio, foto, rutaFoto, disponible: true, presentaciones: extra.presentaciones || {} });
+    productos.unshift({ numero, codigo, precio, foto, rutaFoto, disponible: true, presentaciones: extra.presentaciones || {},
+      atributos: leerAtributos(categoria.id, extra.atributos, configCat) });
     pintarProductos();
     cerrarFormulario();
     toast(`Producto ${codigo} guardado`);

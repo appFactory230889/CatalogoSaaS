@@ -1,15 +1,18 @@
-// Configuración de la categoría: telas y tallas de Ropa, guardadas en Firebase.
+// ⚙️ Configuración de una categoría: variantes (telas, colores…), tallas (con cm si aplica)
+// y listas de atributos (tipos de zapato…). Todo según js/especificaciones.js.
 import { auth, db, configLista, onAuthStateChanged, ref, get } from "./firebase.js";
 import {
-  categoriaPorId, asegurarConfigRopa, guardarConfigRopa, leerPresentaciones, nuevoId
+  categoriaPorId, asegurarConfigCategoria, guardarConfigCategoria, leerPresentaciones, nuevoId
 } from "./datos.js";
+import { especDe } from "./especificaciones.js";
 
 const $ = (id) => document.getElementById(id);
 const categoria = categoriaPorId(new URLSearchParams(location.search).get("c"));
+const espec = especDe(categoria?.id);
 
 let uid = null;
-let config = { telas: [], tallas: [] };
-let uso = { telas: {}, tallas: {} }; // cuántos productos usan cada tela/talla
+let config = null;
+let uso = { variantes: {}, tallas: {}, listas: {} }; // cuántos productos usan cada opción
 
 let toastTimer;
 function toast(texto) {
@@ -21,23 +24,29 @@ function toast(texto) {
 }
 
 async function contarUso() {
-  uso = { telas: {}, tallas: {} };
+  uso = { variantes: {}, tallas: {}, listas: {} };
+  const suma = (obj, id) => (obj[id] = (obj[id] || 0) + 1);
   const snap = await get(ref(db, `productos/${uid}`));
   snap.forEach((hijo) => {
-    if (hijo.child("categoria").val() !== "ropa") return;
+    if (hijo.child("categoria").val() !== categoria.id) return;
     const pres = leerPresentaciones(hijo.child("presentaciones").val());
     const tallasDelProducto = new Set();
-    Object.entries(pres).forEach(([telaId, pr]) => {
-      uso.telas[telaId] = (uso.telas[telaId] || 0) + 1;
+    Object.entries(pres).forEach(([id, pr]) => {
+      suma(uso.variantes, id);
       Object.keys(pr.precios).forEach((t) => tallasDelProducto.add(t));
     });
-    tallasDelProducto.forEach((t) => (uso.tallas[t] = (uso.tallas[t] || 0) + 1));
+    tallasDelProducto.forEach((t) => suma(uso.tallas, t));
+    espec.atributos.filter((a) => a.lista).forEach((a) => {
+      const v = hijo.child(`atributos/${a.clave}`).val();
+      uso.listas[a.lista] ??= {};
+      if (typeof v === "string") suma(uso.listas[a.lista], v);
+    });
   });
 }
 
 async function guardar(mensaje) {
   try {
-    await guardarConfigRopa(uid, config);
+    await guardarConfigCategoria(uid, categoria.id, config);
     if (mensaje) toast(mensaje);
   } catch (err) {
     console.error(err);
@@ -45,89 +54,153 @@ async function guardar(mensaje) {
   }
 }
 
-function pintarLista(ul, items, tipo, conteo) {
-  ul.innerHTML = "";
-  items.forEach((item, i) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <input type="text" maxlength="${tipo === "tallas" ? 12 : 40}" aria-label="Nombre">
-      <span class="uso-item"></span>
-      <button type="button" class="btn-icono" data-acc="subir" title="Subir" aria-label="Subir">↑</button>
-      <button type="button" class="btn-icono" data-acc="bajar" title="Bajar" aria-label="Bajar">↓</button>
-      <button type="button" class="btn-icono" data-acc="borrar" title="Borrar" aria-label="Borrar">✕</button>`;
-    const input = li.querySelector("input");
-    input.value = item.nombre;
-    const n = conteo[item.id] || 0;
-    li.querySelector(".uso-item").textContent = n ? `${n} prod.` : "";
-    li.querySelector('[data-acc="subir"]').disabled = i === 0;
-    li.querySelector('[data-acc="bajar"]').disabled = i === items.length - 1;
+/**
+ * Tarjeta con una lista editable.
+ * opciones: { titulo, ayuda, ejemplo, maxLargo, items, conteo, conCm, etiqueta }
+ */
+function crearTarjeta(o) {
+  const tarjeta = document.createElement("div");
+  tarjeta.className = "tarjeta";
+  tarjeta.innerHTML = `
+    <h2></h2>
+    <p class="sub"></p>
+    <ul class="lista-editable${o.conCm ? " con-cm" : ""}"></ul>
+    <form class="fila-agregar">
+      <input type="text" autocomplete="off">
+      <button type="submit" class="btn btn-primario">Agregar</button>
+    </form>
+    <p class="mensaje" role="alert"></p>`;
+  tarjeta.querySelector("h2").textContent = o.titulo;
+  tarjeta.querySelector(".sub").textContent = o.ayuda;
+  const input = tarjeta.querySelector("form input");
+  input.placeholder = o.ejemplo;
+  input.maxLength = o.maxLargo;
+  const ul = tarjeta.querySelector("ul");
+  const msg = tarjeta.querySelector(".mensaje");
 
-    input.addEventListener("change", () => {
-      const v = input.value.trim().replace(/\s+/g, " ");
-      if (!v || items.some((x) => x !== item && x.nombre.toLowerCase() === v.toLowerCase())) {
-        input.value = item.nombre;
-        toast(v ? `Ya existe "${v}"` : "El nombre no puede quedar vacío");
-        return;
-      }
-      item.nombre = v;
-      guardar("Nombre actualizado");
-    });
+  function pintar() {
+    ul.innerHTML = "";
+    if (o.conCm) {
+      ul.innerHTML = `<li class="lista-encabezado"><span>Talla</span><span>Largo del pie (cm)</span></li>`;
+    }
+    o.items.forEach((item, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <input type="text" class="nombre" aria-label="Nombre">
+        ${o.conCm ? `<input type="number" class="cm" min="0" max="49" step="0.1" placeholder="cm" aria-label="Largo del pie en cm">` : ""}
+        <span class="uso-item"></span>
+        <button type="button" class="btn-icono" data-acc="subir" title="Subir" aria-label="Subir">↑</button>
+        <button type="button" class="btn-icono" data-acc="bajar" title="Bajar" aria-label="Bajar">↓</button>
+        <button type="button" class="btn-icono" data-acc="borrar" title="Borrar" aria-label="Borrar">✕</button>`;
+      const nombre = li.querySelector(".nombre");
+      nombre.value = item.nombre;
+      nombre.maxLength = o.maxLargo;
+      const n = o.conteo()[item.id] || 0;
+      li.querySelector(".uso-item").textContent = n ? `${n} prod.` : "";
+      li.querySelector('[data-acc="subir"]').disabled = i === 0;
+      li.querySelector('[data-acc="bajar"]').disabled = i === o.items.length - 1;
 
-    li.addEventListener("click", (e) => {
-      const acc = e.target.closest("button")?.dataset.acc;
-      if (!acc) return;
-      if (acc === "borrar") {
-        if (n) {
-          alert(`"${item.nombre}" se usa en ${n} producto(s).\n\nPara borrarla, primero borra esos productos. Si solo quieres cambiarle el nombre, escríbelo encima.`);
+      nombre.addEventListener("change", () => {
+        const v = nombre.value.trim().replace(/\s+/g, " ");
+        if (!v || o.items.some((x) => x !== item && x.nombre.toLowerCase() === v.toLowerCase())) {
+          nombre.value = item.nombre;
+          toast(v ? `Ya existe "${v}"` : "El nombre no puede quedar vacío");
           return;
         }
-        if (!confirm(`¿Borrar "${item.nombre}"?`)) return;
-        items.splice(i, 1);
-        guardar(`"${item.nombre}" borrada`);
-      } else {
-        const j = acc === "subir" ? i - 1 : i + 1;
-        [items[i], items[j]] = [items[j], items[i]];
-        guardar();
+        item.nombre = v;
+        guardar("Nombre actualizado");
+      });
+
+      if (o.conCm) {
+        const cm = li.querySelector(".cm");
+        cm.value = item.cm ?? "";
+        cm.addEventListener("change", () => {
+          const v = Math.round(parseFloat(cm.value) * 10) / 10;
+          if (Number.isFinite(v) && v > 0 && v < 50) item.cm = v;
+          else { delete item.cm; cm.value = ""; }
+          guardar("Guía de tallas actualizada");
+        });
       }
-      pintar();
+
+      li.addEventListener("click", (e) => {
+        const acc = e.target.closest("button")?.dataset.acc;
+        if (!acc) return;
+        if (acc === "borrar") {
+          if (n) {
+            alert(`"${item.nombre}" se usa en ${n} producto(s).\n\nPara borrarlo, primero borra esos productos. Si solo quieres cambiarle el nombre, escríbelo encima.`);
+            return;
+          }
+          if (!confirm(`¿Borrar "${item.nombre}"?`)) return;
+          o.items.splice(i, 1);
+          guardar(`"${item.nombre}" borrado`);
+        } else {
+          const j = acc === "subir" ? i - 1 : i + 1;
+          [o.items[i], o.items[j]] = [o.items[j], o.items[i]];
+          guardar();
+        }
+        pintar();
+      });
+      ul.appendChild(li);
     });
-    ul.appendChild(li);
-  });
-  if (!items.length) ul.innerHTML = `<li class="lista-vacia">No hay ${tipo} todavía.</li>`;
-}
-
-function pintar() {
-  pintarLista($("lista-telas"), config.telas, "telas", uso.telas);
-  pintarLista($("lista-tallas"), config.tallas, "tallas", uso.tallas);
-}
-
-function agregar(lista, input, msg, etiqueta) {
-  const v = input.value.trim().replace(/\s+/g, " ");
-  msg.textContent = "";
-  if (!v) return;
-  if (lista.some((x) => x.nombre.toLowerCase() === v.toLowerCase())) {
-    msg.textContent = `Ya existe "${v}".`;
-    return;
+    if (!o.items.length) ul.innerHTML = `<li class="lista-vacia">Todavía no hay ${o.etiqueta}.</li>`;
   }
-  lista.push({ id: nuevoId(), nombre: v });
-  input.value = "";
+
+  tarjeta.querySelector("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = input.value.trim().replace(/\s+/g, " ");
+    msg.textContent = "";
+    if (!v) return;
+    if (o.items.some((x) => x.nombre.toLowerCase() === v.toLowerCase())) {
+      msg.textContent = `Ya existe "${v}".`;
+      return;
+    }
+    o.items.push({ id: nuevoId(), nombre: v });
+    input.value = "";
+    pintar();
+    guardar(`"${v}" agregado`);
+  });
+
   pintar();
-  guardar(`${etiqueta} "${v}" agregada`);
+  return tarjeta;
 }
 
-$("form-tela").addEventListener("submit", (e) => { e.preventDefault(); agregar(config.telas, $("nueva-tela"), $("msg-tela"), "Tela"); });
-$("form-talla").addEventListener("submit", (e) => { e.preventDefault(); agregar(config.tallas, $("nueva-talla"), $("msg-talla"), "Talla"); });
+function pintarTarjetas() {
+  const cont = $("tarjetas-config");
+  cont.innerHTML = "";
+  const v = espec.variante;
+  cont.appendChild(crearTarjeta({
+    titulo: v.titulo, ayuda: v.ayuda, ejemplo: v.ejemplo, maxLargo: 40,
+    items: config.variantes, conteo: () => uso.variantes, etiqueta: v.plural
+  }));
+  cont.appendChild(crearTarjeta({
+    titulo: "Tallas",
+    ayuda: espec.tallas.conCm
+      ? "En el orden en que se mostrarán. Agrega el largo del pie en cm: tus clientas lo verán como guía de tallas."
+      : "En el orden en que se mostrarán. El precio puede cambiar según la talla.",
+    ejemplo: espec.tallas.ejemplo, maxLargo: 12, conCm: espec.tallas.conCm,
+    items: config.tallas, conteo: () => uso.tallas, etiqueta: "tallas"
+  }));
+  espec.atributos.filter((a) => a.lista).forEach((a) => {
+    config.listas[a.lista] ??= [];
+    cont.appendChild(crearTarjeta({
+      titulo: a.tituloLista, ayuda: a.ayudaLista, ejemplo: a.ejemplo, maxLargo: 40,
+      items: config.listas[a.lista], conteo: () => uso.listas[a.lista] || {}, etiqueta: a.tituloLista.toLowerCase()
+    }));
+  });
+}
 
 async function iniciar(user) {
   uid = user.uid;
   $("cat-icono").textContent = categoria.icono;
   $("cat-nombre").textContent = categoria.nombre;
   document.title = `Configuración de ${categoria.nombre} · App Factory`;
-  if (categoria.id === "ropa") {
-    config = await asegurarConfigRopa(uid);
+  if (espec) {
+    config = await asegurarConfigCategoria(uid, categoria.id);
     await contarUso();
-    pintar();
-    $("vista-ropa").hidden = false;
+    pintarTarjetas();
+    $("ir-categoria").href = `categoria.html?c=${categoria.id}`;
+    $("ir-categoria").textContent = `Ir a mis productos de ${categoria.nombre} →`;
+    $("vista-espec").hidden = false;
   } else {
     $("vista-proximamente").hidden = false;
   }

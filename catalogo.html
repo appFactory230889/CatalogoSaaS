@@ -58,6 +58,7 @@
       </div>
 
       <div class="filtros">
+        <div id="chips-filtro" class="chips"></div>
         <input id="buscar" type="search" inputmode="numeric" placeholder="Buscar por código, ej. 0012" aria-label="Buscar por código">
       </div>
 
@@ -80,11 +81,17 @@
       </div>
       <p id="detalle-nota" class="ficha-nota"></p>
       <div id="detalle-opciones" hidden>
-        <p class="ficha-etiqueta">Tela: <strong id="detalle-tela"></strong></p>
+        <p class="ficha-etiqueta"><span id="etiqueta-variante">Tela</span>: <strong id="detalle-tela"></strong></p>
         <div id="detalle-telas" class="chips"></div>
         <p class="ficha-etiqueta">Talla: <strong id="detalle-talla"></strong></p>
         <div id="detalle-tallas" class="chips"></div>
+        <p id="detalle-guia" class="guia-talla"></p>
+        <details id="tabla-tallas" class="tabla-tallas" hidden>
+          <summary>Guía de tallas</summary>
+          <table><thead><tr><th>Talla</th><th>Largo del pie</th></tr></thead><tbody></tbody></table>
+        </details>
       </div>
+      <dl id="detalle-atributos" class="atributos"></dl>
     </div>
   </dialog>
 

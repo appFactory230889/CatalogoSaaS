@@ -12,12 +12,15 @@
 //   planes/{uid}/limite  solo lo edita App Factory (consola). Si no existe → 250
 //   productos/{uid}/{numero}
 //     numero, codigo "001-0001", categoria, precio, foto, rutaFoto, disponible, creadoEn
-//     precioDesde                        (Ropa) el precio más bajo
-//     presentaciones/{telaId}            (Ropa) { disponible, precios: { {tallaId}: 12.5 } }
-//   configCategorias/{uid}/ropa          (lectura pública: el catálogo necesita los nombres)
-//     telas/{id}  = { nombre, orden }
-//     tallas/{id} = { nombre, orden }
+//     precioDesde                        el precio más bajo (categorías con presentaciones)
+//     presentaciones/{varianteId}        { disponible, precios: { {tallaId}: 12.5 } }  (tela, color…)
+//     atributos                          { tipo, tacon, calce }  (Zapatos)
+//   configCategorias/{uid}/{categoria}   (lectura pública: el catálogo necesita los nombres)
+//     telas | colores /{id} = { nombre, orden }     ← según js/especificaciones.js
+//     tallas/{id}           = { nombre, orden, cm? }
+//     tipos/{id}            = { nombre, orden }     (Zapatos)
 import { db, ref, get, set, update, push, runTransaction, serverTimestamp } from "./firebase.js";
+import { ESPECIFICACIONES, especDe } from "./especificaciones.js";
 
 export const LIMITE_GRATIS = 250;
 
@@ -48,11 +51,8 @@ export function formatearPrecio(precio) {
 }
 
 // ---------------------------------------------------------------------
-// Configuración de Ropa: telas y tallas de cada negocio
+// Configuración por categoría (variantes, tallas y listas de atributos)
 // ---------------------------------------------------------------------
-export const TELAS_INICIALES = ["Sin especificar", "Liverpool", "Piel de durazno", "Cárdigan", "Quiana"];
-export const TALLAS_INICIALES = ["XS", "S", "M", "L", "XL", "XXL"];
-
 /** Id nuevo generado por Firebase (no escribe nada). */
 export const nuevoId = () => push(ref(db, "ids")).key;
 
@@ -60,38 +60,97 @@ function listaOrdenada(nodo) {
   const lista = [];
   if (nodo && typeof nodo === "object") {
     Object.entries(nodo).forEach(([id, v]) => {
-      if (v && typeof v.nombre === "string") lista.push({ id, nombre: v.nombre, orden: num(v.orden) });
+      if (!v || typeof v.nombre !== "string") return;
+      const item = { id, nombre: v.nombre, orden: num(v.orden) };
+      if (typeof v.cm === "number" && v.cm > 0) item.cm = v.cm;
+      lista.push(item);
     });
   }
-  return lista.sort((a, b) => a.orden - b.orden).map(({ id, nombre }) => ({ id, nombre }));
+  return lista.sort((a, b) => a.orden - b.orden).map(({ orden, ...resto }) => resto);
 }
 
 function aNodo(lista) {
   const nodo = {};
-  lista.forEach((x, i) => (nodo[x.id] = { nombre: x.nombre, orden: i }));
+  lista.forEach((x, i) => {
+    nodo[x.id] = { nombre: x.nombre, orden: i };
+    if (typeof x.cm === "number" && x.cm > 0) nodo[x.id].cm = x.cm;
+  });
   return nodo;
 }
 
-/** Lee telas y tallas de Ropa. Funciona sin sesión (para el catálogo público). */
-export async function leerConfigRopa(uid) {
-  const d = (await get(ref(db, `configCategorias/${uid}/ropa`))).val() || {};
-  return { telas: listaOrdenada(d.telas), tallas: listaOrdenada(d.tallas), existe: !!(d.telas || d.tallas) };
-}
+const listasDe = (espec) => espec.atributos.filter((a) => a.lista);
 
-export async function guardarConfigRopa(uid, config) {
-  await set(ref(db, `configCategorias/${uid}/ropa`), { telas: aNodo(config.telas), tallas: aNodo(config.tallas) });
-}
-
-/** La primera vez, crea las telas y tallas de ejemplo para que la dueña no empiece en blanco. */
-export async function asegurarConfigRopa(uid) {
-  const config = await leerConfigRopa(uid);
-  if (config.existe) return config;
-  const inicial = {
-    telas: TELAS_INICIALES.map((nombre) => ({ id: nuevoId(), nombre })),
-    tallas: TALLAS_INICIALES.map((nombre) => ({ id: nuevoId(), nombre }))
+/** Convierte el nodo guardado en { variantes, tallas, listas: { tipos: [...] }, existe }. */
+export function configDesdeNodo(categoriaId, d) {
+  const espec = especDe(categoriaId);
+  d = d && typeof d === "object" ? d : {};
+  const listas = {};
+  listasDe(espec).forEach((a) => (listas[a.lista] = listaOrdenada(d[a.lista])));
+  return {
+    variantes: listaOrdenada(d[espec.variante.clave]),
+    tallas: listaOrdenada(d.tallas),
+    listas,
+    existe: !!(d[espec.variante.clave] || d.tallas)
   };
-  await guardarConfigRopa(uid, inicial);
+}
+
+/** Lee la configuración de una categoría. Funciona sin sesión (catálogo público). */
+export async function leerConfigCategoria(uid, categoriaId) {
+  if (!especDe(categoriaId)) return null;
+  const d = (await get(ref(db, `configCategorias/${uid}/${categoriaId}`))).val();
+  return configDesdeNodo(categoriaId, d);
+}
+
+/** Todas las categorías de un negocio en una sola lectura (para el catálogo público). */
+export async function leerConfigTodas(uid) {
+  const d = (await get(ref(db, `configCategorias/${uid}`))).val() || {};
+  const salida = {};
+  Object.keys(ESPECIFICACIONES).forEach((cat) => (salida[cat] = configDesdeNodo(cat, d[cat])));
+  return salida;
+}
+
+export async function guardarConfigCategoria(uid, categoriaId, config) {
+  const espec = especDe(categoriaId);
+  const nodo = { [espec.variante.clave]: aNodo(config.variantes), tallas: aNodo(config.tallas) };
+  listasDe(espec).forEach((a) => (nodo[a.lista] = aNodo(config.listas[a.lista] || [])));
+  await set(ref(db, `configCategorias/${uid}/${categoriaId}`), nodo);
+}
+
+/** La primera vez, crea las listas de ejemplo para que la dueña no empiece en blanco. */
+export async function asegurarConfigCategoria(uid, categoriaId) {
+  const espec = especDe(categoriaId);
+  if (!espec) return null;
+  const config = await leerConfigCategoria(uid, categoriaId);
+  if (config.existe) return config;
+  const listas = {};
+  listasDe(espec).forEach((a) => (listas[a.lista] = a.iniciales.map((nombre) => ({ id: nuevoId(), nombre }))));
+  const inicial = {
+    variantes: espec.variante.iniciales.map((nombre) => ({ id: nuevoId(), nombre })),
+    tallas: espec.tallas.iniciales.map((nombre) => {
+      const t = { id: nuevoId(), nombre };
+      const cm = espec.tallas.cmIniciales?.[nombre];
+      if (cm) t.cm = cm;
+      return t;
+    }),
+    listas
+  };
+  await guardarConfigCategoria(uid, categoriaId, inicial);
   return { ...inicial, existe: true };
+}
+
+/** Atributos del producto (tipo, tacón, calce…) con su texto para mostrar. */
+export function leerAtributos(categoriaId, nodo, config) {
+  const espec = especDe(categoriaId);
+  const salida = [];
+  if (!espec || !nodo || typeof nodo !== "object") return salida;
+  espec.atributos.forEach((a) => {
+    const valor = nodo[a.clave];
+    if (typeof valor !== "string") return;
+    const opciones = a.lista ? config?.listas?.[a.lista] || [] : a.opciones;
+    const nombre = opciones.find((o) => o.id === valor)?.nombre;
+    if (nombre) salida.push({ clave: a.clave, etiqueta: a.nombre, id: valor, nombre });
+  });
+  return salida;
 }
 
 /** Normaliza presentaciones leídas de Firebase (no confiar en los tipos). */

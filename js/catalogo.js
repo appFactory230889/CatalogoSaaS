@@ -6,8 +6,9 @@
 import { db, configLista, ref, get } from "./firebase.js";
 import {
   CATEGORIAS, categoriaPorId, formatearPrecio, num,
-  leerConfigRopa, leerPresentaciones, tieneVariosPrecios
+  leerConfigTodas, leerPresentaciones, leerAtributos, tieneVariosPrecios
 } from "./datos.js";
+import { especDe } from "./especificaciones.js";
 import { crearSelectorPresentaciones } from "./presentaciones.js";
 import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
 
@@ -17,11 +18,12 @@ let productos = [];
 let codigoCliente = 0;
 let nombreTienda = "Catálogo";
 let categoriaActual = null;
-let configRopa = { telas: [], tallas: [] };
+let configs = {};           // configuración de cada categoría (variantes, tallas, listas)
+let filtro = null;          // { clave: "tipo", id } filtro activo dentro de la categoría
 const selector = crearSelectorPresentaciones({
   contTelas: $("detalle-telas"), contTallas: $("detalle-tallas"),
   elTela: $("detalle-tela"), elTalla: $("detalle-talla"),
-  elPrecio: $("detalle-precio"), elNota: $("detalle-nota")
+  elPrecio: $("detalle-precio"), elNota: $("detalle-nota"), elGuia: $("detalle-guia")
 });
 
 function mostrar(vista) {
@@ -53,9 +55,9 @@ async function cargar() {
   const [snapNombre, snapProductos, config] = await Promise.all([
     get(ref(db, `negocios/${uid}/nombre`)),
     get(ref(db, `productos/${uid}`)),
-    leerConfigRopa(uid).catch(() => ({ telas: [], tallas: [] }))
+    leerConfigTodas(uid).catch(() => ({}))
   ]);
-  configRopa = config;
+  configs = config;
   const nombre = typeof snapNombre.val() === "string" ? snapNombre.val() : "Catálogo";
 
   const lista = [];
@@ -68,7 +70,8 @@ async function cargar() {
     lista.push({
       numero: num(d.numero), codigo: d.codigo, categoria: d.categoria,
       precio: num(d.precioDesde, num(d.precio)), foto: d.foto,
-      presentaciones: leerPresentaciones(d.presentaciones)
+      presentaciones: leerPresentaciones(d.presentaciones),
+      atributos: leerAtributos(d.categoria, d.atributos, configs[d.categoria])
     });
   });
   productos = lista.sort((a, b) => b.numero - a.numero);
@@ -131,6 +134,8 @@ function mostrarCategoria(cat, conVolver) {
   $("btn-compartir-categoria").hidden = n === 0;
   document.querySelector(".filtros").hidden = n === 0;
   $("buscar").value = "";
+  filtro = null;
+  pintarFiltros();
   pintarGrid();
   mostrar("categoria");
   window.scrollTo(0, 0);
@@ -144,10 +149,41 @@ window.addEventListener("popstate", (e) => {
   else mostrarPortada();
 });
 
+/** Chips para filtrar por un atributo (ej. Tipo de zapato), solo con opciones que tengan productos. */
+function pintarFiltros() {
+  const cont = $("chips-filtro");
+  cont.innerHTML = "";
+  const espec = especDe(categoriaActual?.id);
+  const atributo = espec?.atributos.find((a) => a.filtro);
+  if (!atributo) return;
+  const enCategoria = productos.filter((p) => p.categoria === categoriaActual.id);
+  const presentes = [];
+  enCategoria.forEach((p) => {
+    const a = p.atributos.find((x) => x.clave === atributo.clave);
+    if (a && !presentes.some((x) => x.id === a.id)) presentes.push(a);
+  });
+  if (presentes.length < 2) return;
+  const orden = configs[categoriaActual.id]?.listas?.[atributo.lista] || [];
+  presentes.sort((a, b) => orden.findIndex((o) => o.id === a.id) - orden.findIndex((o) => o.id === b.id));
+  [{ id: null, nombre: "Todos" }, ...presentes].forEach((o) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip" + ((filtro?.id ?? null) === o.id ? " activo" : "");
+    b.textContent = o.nombre;
+    b.addEventListener("click", () => {
+      filtro = o.id ? { clave: atributo.clave, id: o.id } : null;
+      pintarFiltros();
+      pintarGrid();
+    });
+    cont.appendChild(b);
+  });
+}
+
 function pintarGrid() {
   const texto = $("buscar").value.trim().replace(/\s+/g, "");
   const visibles = productos.filter((p) =>
-    p.categoria === categoriaActual?.id && (!texto || p.codigo.includes(texto))
+    p.categoria === categoriaActual?.id && (!texto || p.codigo.includes(texto)) &&
+    (!filtro || p.atributos.some((a) => a.clave === filtro.clave && a.id === filtro.id))
   );
   const grid = $("grid");
   grid.innerHTML = "";
@@ -180,12 +216,42 @@ function abrirDetalle(p) {
   $("detalle-codigo").textContent = p.codigo;
   const conOpciones = Object.keys(p.presentaciones).length > 0;
   $("detalle-opciones").hidden = !conOpciones;
-  if (conOpciones) {
-    selector.mostrar(p, configRopa);
+  const espec = especDe(p.categoria);
+  const config = configs[p.categoria] || { variantes: [], tallas: [] };
+  if (conOpciones && espec) {
+    $("etiqueta-variante").textContent = espec.variante.singular[0].toUpperCase() + espec.variante.singular.slice(1);
+    selector.mostrar(p, config, espec.variante);
   } else {
     $("detalle-precio").textContent = formatearPrecio(p.precio);
     $("detalle-nota").textContent = "";
   }
+
+  // Guía de tallas (solo tallas con cm que vienen en este producto)
+  const tallasProducto = new Set(Object.values(p.presentaciones).flatMap((x) => Object.keys(x.precios)));
+  const conCm = (config.tallas || []).filter((t) => t.cm && tallasProducto.has(t.id));
+  $("tabla-tallas").hidden = !conCm.length;
+  $("tabla-tallas").open = false;
+  $("tabla-tallas").querySelector("tbody").innerHTML = "";
+  conCm.forEach((t) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td>";
+    tr.children[0].textContent = t.nombre;
+    tr.children[1].textContent = `${t.cm} cm`;
+    $("tabla-tallas").querySelector("tbody").appendChild(tr);
+  });
+  if (!conOpciones) $("detalle-guia").textContent = "";
+
+  // Especificaciones (tipo, tacón, calce…)
+  const dl = $("detalle-atributos");
+  dl.innerHTML = "";
+  p.atributos.forEach((a) => {
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = a.etiqueta;
+    dd.textContent = a.nombre;
+    dl.append(dt, dd);
+  });
+  dl.hidden = !p.atributos.length;
   $("detalle").showModal();
 }
 

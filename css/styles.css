@@ -406,6 +406,24 @@ a.btn, a.categoria { text-decoration: none; }
 .volver { margin: 0 0 14px; font-size: .9rem; }
 .catalogo-publico .grid-categorias { margin-top: 18px; }
 
+/* Especificaciones: atributos, guía de tallas */
+.grid-atributos { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 12px; margin-bottom: 4px; }
+.grid-atributos:empty { display: none; }
+.lista-editable.con-cm .cm { width: 76px; flex: 0 0 auto; }
+.lista-encabezado { font-size: .75rem; font-weight: 700; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .04em; }
+.lista-encabezado span:first-child { flex: 1; }
+.lista-encabezado span:last-child { width: 186px; }
+.guia-talla { font-size: .85rem; color: var(--texto-suave); margin-top: 8px; min-height: 1.2em; }
+.tabla-tallas { margin-top: 8px; font-size: .85rem; }
+.tabla-tallas summary { cursor: pointer; color: var(--primario); font-weight: 600; }
+.tabla-tallas table { border-collapse: collapse; margin-top: 8px; width: 100%; max-width: 280px; }
+.tabla-tallas th, .tabla-tallas td { text-align: left; padding: 5px 10px; border-bottom: 1px solid var(--borde); }
+.tabla-tallas th { font-size: .75rem; color: var(--texto-suave); text-transform: uppercase; }
+.atributos { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 14px 0 0; font-size: .88rem; padding-top: 12px; border-top: 1px solid var(--borde); }
+.atributos:empty { display: none; }
+.atributos dt { color: var(--texto-suave); }
+.atributos dd { margin: 0; font-weight: 600; }
+
 /* Botón compartir en el panel */
 .compartir {
   display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;

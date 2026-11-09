@@ -106,6 +106,20 @@
               }
             }
           },
+          "atributos": {
+            "tipo": {
+              ".validate": "newData.isString() && newData.val().length <= 40"
+            },
+            "tacon": {
+              ".validate": "newData.isString() && newData.val().matches(/^(sin|bajo|medio|alto)$/)"
+            },
+            "calce": {
+              ".validate": "newData.isString() && newData.val().matches(/^(normal|pequena|grande)$/)"
+            },
+            "$otro": {
+              ".validate": false
+            }
+          },
           "$otro": {
             ".validate": false
           }
@@ -133,6 +147,37 @@
             }
           },
           "tallas": {
+            "$id": {
+              ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
+              "nombre": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+              },
+              "orden": {
+                ".validate": "newData.isNumber()"
+              },
+              "cm": {
+                ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() < 50"
+              },
+              "$otro": {
+                ".validate": false
+              }
+            }
+          },
+          "colores": {
+            "$id": {
+              ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
+              "nombre": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+              },
+              "orden": {
+                ".validate": "newData.isNumber()"
+              },
+              "$otro": {
+                ".validate": false
+              }
+            }
+          },
+          "tipos": {
             "$id": {
               ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
               "nombre": {
