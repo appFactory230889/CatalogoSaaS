@@ -23,34 +23,26 @@
   </header>
 
   <main class="contenido">
-    <div class="aviso-prototipo">
-      <strong>Prototipo para revisar.</strong> Lo que hagas aquí se guarda solo en este navegador. Todavía no se conecta a Firebase ni afecta tu catálogo real.
-      <button type="button" id="btn-reiniciar" class="enlace">Reiniciar prototipo</button>
-    </div>
-
-    <div class="cabecera-categoria">
-      <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
-      <div>
-        <h1 id="cat-nombre"></h1>
-        <p class="sub">Configuración de la categoría</p>
-      </div>
-    </div>
-
-    <!-- Categorías que aún no tienen especificaciones -->
-    <section id="vista-proximamente" class="tarjeta vacio-config" hidden>
-      <p class="emoji-grande" aria-hidden="true">⚙️</p>
-      <p>Las especificaciones de esta categoría se definirán pronto.</p>
+    <section id="vista-cargando" class="cargando" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando…</p>
     </section>
 
-    <section id="vista-ropa" hidden>
-      <div class="tabs tabs-config" role="tablist">
-        <button type="button" class="tab active" data-paso="config" role="tab">1 · Telas y tallas</button>
-        <button type="button" class="tab" data-paso="producto" role="tab">2 · Nuevo producto</button>
-        <button type="button" class="tab" data-paso="vista" role="tab">3 · Vista de la clienta</button>
+    <section id="vista-config" hidden>
+      <div class="cabecera-categoria">
+        <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
+        <div>
+          <h1 id="cat-nombre"></h1>
+          <p class="sub">Configuración de la categoría</p>
+        </div>
       </div>
 
-      <!-- PASO 1: Configuración -->
-      <section id="paso-config" class="paso">
+      <section id="vista-proximamente" class="tarjeta vacio-config" hidden>
+        <p class="emoji-grande" aria-hidden="true">⚙️</p>
+        <p>Las especificaciones de esta categoría se definirán pronto.</p>
+      </section>
+
+      <section id="vista-ropa" hidden>
         <div class="grid-config">
           <div class="tarjeta">
             <h2>Tipos de tela</h2>
@@ -74,69 +66,7 @@
             <p id="msg-talla" class="mensaje" role="alert"></p>
           </div>
         </div>
-      </section>
-
-      <!-- PASO 2: Nuevo producto -->
-      <section id="paso-producto" class="paso" hidden>
-        <div class="grid-producto">
-          <div class="tarjeta">
-            <h2>Foto</h2>
-            <label class="selector-foto">
-              <input type="file" id="input-foto" accept="image/*" hidden>
-              <canvas id="lienzo" class="lienzo" hidden></canvas>
-              <span id="selector-texto" class="selector-texto">
-                <span class="selector-icono" aria-hidden="true">🖼️</span>
-                Toca para elegir una foto (opcional en el prototipo)
-              </span>
-            </label>
-            <p class="ayuda">Código del producto: <strong id="codigo-preview"></strong></p>
-          </div>
-
-          <div class="tarjeta">
-            <h2>Presentaciones (telas)</h2>
-            <p class="sub">Toca las telas en que viene este producto. Cada una tiene sus propios precios por talla.</p>
-            <div id="chips-telas" class="chips"></div>
-            <div id="presentaciones"></div>
-            <p id="msg-producto" class="mensaje" role="alert"></p>
-            <div class="acciones">
-              <button type="button" id="btn-limpiar" class="btn btn-fantasma">Limpiar</button>
-              <button type="button" id="btn-guardar" class="btn btn-primario">Guardar producto</button>
-            </div>
-          </div>
-        </div>
-
-        <h2 class="titulo-seccion">Productos de prueba</h2>
-        <div id="lista-vacia" class="vacio">Aún no has guardado productos de prueba.</div>
-        <div id="grid-productos" class="grid-productos"></div>
-      </section>
-
-      <!-- PASO 3: Vista de la clienta -->
-      <section id="paso-vista" class="paso" hidden>
-        <label class="campo campo-angosto">
-          <span>Producto</span>
-          <select id="select-producto"></select>
-        </label>
-        <div id="vista-vacia" class="vacio">Guarda un producto en el paso 2 para verlo como lo verá tu clienta.</div>
-
-        <article id="ficha" class="ficha" hidden>
-          <div class="ficha-foto"><img id="ficha-img" alt=""></div>
-          <div class="ficha-info">
-            <p class="ficha-codigo" id="ficha-codigo"></p>
-            <p class="ficha-precio" id="ficha-precio"></p>
-            <p class="ficha-nota" id="ficha-nota"></p>
-
-            <p class="ficha-etiqueta">Tela: <strong id="ficha-tela"></strong></p>
-            <div id="ficha-telas" class="chips"></div>
-
-            <p class="ficha-etiqueta">Talla: <strong id="ficha-talla"></strong></p>
-            <div id="ficha-tallas" class="chips"></div>
-
-            <details class="json">
-              <summary>Así se guardaría en Firebase</summary>
-              <pre id="ficha-json"></pre>
-            </details>
-          </div>
-        </article>
+        <a id="ir-categoria" class="btn btn-primario btn-nuevo" href="categoria.html?c=ropa">Ir a mis productos de Ropa →</a>
       </section>
     </section>
   </main>

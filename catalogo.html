@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Catálogo · App Factory</title>
+  <meta name="description" content="Mira el catálogo y elige tus productos favoritos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="img/logo-escudo.png">
+  <link rel="apple-touch-icon" href="img/logo-escudo.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-page catalogo-publico">
+  <header class="topbar">
+    <div class="brand brand-sm">
+      <img class="brand-logo" src="img/logo-escudo.png" alt="" width="42" height="46">
+      <p class="brand-name" id="titulo-tienda">Catálogo</p>
+    </div>
+    <button type="button" id="btn-compartir" class="btn btn-fantasma" hidden>Compartir</button>
+  </header>
+
+  <main class="contenido">
+    <section id="vista-cargando" class="cargando" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando catálogo…</p>
+    </section>
+
+    <section id="vista-error" class="tarjeta vacio-config" hidden>
+      <p class="emoji-grande" aria-hidden="true">🔎</p>
+      <p id="error-texto">No encontramos este catálogo. Revisa el link que te compartieron.</p>
+    </section>
+
+    <section id="vista-catalogo" hidden>
+      <h1 id="nombre-tienda" class="saludo"></h1>
+      <p class="sub" id="resumen"></p>
+
+      <div class="filtros">
+        <div id="chips-categorias" class="chips"></div>
+        <input id="buscar" type="search" inputmode="numeric" placeholder="Buscar por código, ej. 0012" aria-label="Buscar por código">
+      </div>
+
+      <div id="sin-resultados" class="vacio" hidden>No hay productos que coincidan.</div>
+      <div id="grid" class="grid-productos grid-publico"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+  </footer>
+
+  <dialog id="detalle" class="detalle">
+    <button type="button" class="detalle-cerrar" id="detalle-cerrar" aria-label="Cerrar">✕</button>
+    <img id="detalle-img" alt="">
+    <div class="detalle-info">
+      <div class="detalle-fila">
+        <strong id="detalle-codigo" class="producto-codigo"></strong>
+        <span id="detalle-precio" class="detalle-precio"></span>
+      </div>
+      <p id="detalle-nota" class="ficha-nota"></p>
+      <div id="detalle-opciones" hidden>
+        <p class="ficha-etiqueta">Tela: <strong id="detalle-tela"></strong></p>
+        <div id="detalle-telas" class="chips"></div>
+        <p class="ficha-etiqueta">Talla: <strong id="detalle-talla"></strong></p>
+        <div id="detalle-tallas" class="chips"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/catalogo.js"></script>
+</body>
+</html>

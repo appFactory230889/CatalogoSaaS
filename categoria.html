@@ -61,14 +61,25 @@
         </label>
         <p class="ayuda">El código <strong id="codigo-preview">—</strong> se coloca sobre la foto y así se guarda.</p>
 
-        <label class="campo">
-          <span>Precio (US$)</span>
-          <input id="precio" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
-        </label>
+        <!-- Categorías sin presentaciones: un solo precio -->
+        <div id="bloque-precio-simple">
+          <label class="campo">
+            <span>Precio (US$)</span>
+            <input id="precio" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+          </label>
+          <div class="especificaciones">
+            <span>Especificaciones</span>
+            <p>Las especificaciones de esta categoría se agregarán pronto.</p>
+          </div>
+        </div>
 
-        <div class="especificaciones">
-          <span>Especificaciones</span>
-          <p>Las especificaciones de esta categoría se agregarán pronto.</p>
+        <!-- Ropa: presentaciones (telas) con precio por talla -->
+        <div id="bloque-presentaciones" hidden>
+          <h3 class="subtitulo">Presentaciones (telas)</h3>
+          <p class="sub">Toca las telas en que viene este producto. Cada una tiene sus propios precios por talla.
+            <a href="configuracion.html?c=ropa">Editar telas y tallas</a></p>
+          <div id="chips-telas" class="chips"></div>
+          <div id="presentaciones"></div>
         </div>
 
         <p id="msg-producto" class="mensaje" role="alert"></p>

@@ -5,8 +5,11 @@ import {
   sRef, uploadBytes, getDownloadURL, deleteObject
 } from "./firebase.js";
 import {
-  categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num
+  categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num,
+  asegurarConfigRopa, leerPresentaciones, tieneVariosPrecios
 } from "./datos.js";
+import { crearEditorPresentaciones } from "./presentaciones.js";
+import { dibujarCodigo } from "./marca-codigo.js";
 
 const $ = (id) => document.getElementById(id);
 const categoria = categoriaPorId(new URLSearchParams(location.search).get("c"));
@@ -16,6 +19,9 @@ let usuario = null;
 let negocio = null;
 let productos = [];
 let imagen = null; // HTMLImageElement elegido
+let configRopa = { telas: [], tallas: [] };
+const usaPresentaciones = categoria?.id === "ropa";
+let editor = null;
 
 // ---------- utilidades de UI ----------
 let toastTimer;
@@ -67,7 +73,16 @@ function pintarProductos() {
     card.querySelector("img").src = p.foto;
     card.querySelector("img").alt = `Producto ${p.codigo}`;
     card.querySelector(".producto-codigo").textContent = p.codigo;
-    card.querySelector(".producto-precio").textContent = formatearPrecio(p.precio);
+    card.querySelector(".producto-precio").textContent =
+      (tieneVariosPrecios(p.presentaciones) ? "desde " : "") + formatearPrecio(p.precio);
+    const telas = Object.keys(p.presentaciones)
+      .map((id) => configRopa.telas.find((t) => t.id === id)?.nombre).filter(Boolean);
+    if (telas.length) {
+      const det = document.createElement("p");
+      det.className = "producto-detalle";
+      det.textContent = telas.join(" · ");
+      card.querySelector(".producto-info").insertBefore(det, card.querySelector(".producto-info").children[1]);
+    }
 
     const check = card.querySelector("input[type=checkbox]");
     check.checked = p.disponible;
@@ -87,7 +102,8 @@ async function cargarProductos() {
     lista.push({
       numero: num(d.numero),
       codigo: d.codigo,
-      precio: num(d.precio),
+      precio: num(d.precioDesde, num(d.precio)),
+      presentaciones: leerPresentaciones(d.presentaciones),
       foto: d.foto,
       rutaFoto: typeof d.rutaFoto === "string" ? d.rutaFoto : "",
       disponible: d.disponible !== false
@@ -109,6 +125,13 @@ async function iniciar(user) {
   $("cat-nombre").textContent = categoria.nombre;
   document.title = `${categoria.nombre} · App Factory`;
   pintarUso();
+  if (usaPresentaciones) {
+    configRopa = await asegurarConfigRopa(user.uid);
+    editor = crearEditorPresentaciones({ contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast });
+    editor.setConfig(configRopa);
+    $("bloque-precio-simple").hidden = true;
+    $("bloque-presentaciones").hidden = false;
+  }
   await cargarProductos();
   $("vista-cargando").hidden = true;
   $("vista-categoria").hidden = false;
@@ -122,19 +145,7 @@ async function dibujar(codigo) {
   lienzo.height = Math.round(imagen.naturalHeight * escala);
   const ctx = lienzo.getContext("2d");
   ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
-
-  // Código al centro: letras blancas con contorno negro (igual que la app Android).
-  const tamano = Math.round(Math.max(28, lienzo.width * 0.09));
-  try { await document.fonts.load(`800 ${tamano}px Montserrat`); } catch {}
-  ctx.font = `800 ${tamano}px Montserrat, "Plus Jakarta Sans", sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.lineJoin = "round";
-  ctx.lineWidth = Math.max(4, tamano * 0.18);
-  ctx.strokeStyle = "#000";
-  ctx.strokeText(codigo, lienzo.width / 2, lienzo.height / 2);
-  ctx.fillStyle = "#fff";
-  ctx.fillText(codigo, lienzo.width / 2, lienzo.height / 2);
+  await dibujarCodigo(ctx, lienzo.width, lienzo.height, codigo);
 }
 
 function codigoSiguiente() {
@@ -169,6 +180,7 @@ function abrirFormulario() {
   imagen = null;
   $("input-foto").value = "";
   $("precio").value = "";
+  editor?.reiniciar();
   $("lienzo").hidden = true;
   $("selector-texto").hidden = false;
   $("msg-producto").textContent = "";
@@ -189,9 +201,17 @@ $("btn-cancelar").addEventListener("click", cerrarFormulario);
 // ---------- guardar ----------
 $("btn-guardar").addEventListener("click", async () => {
   const msg = $("msg-producto");
-  const precio = Math.round(parseFloat($("precio").value) * 100) / 100;
   if (!imagen) return (msg.textContent = "Elige una foto.");
-  if (!Number.isFinite(precio) || precio <= 0) return (msg.textContent = "Escribe un precio válido.");
+  let precio, extra = {};
+  if (usaPresentaciones) {
+    const r = editor.construir();
+    if (r.error) return (msg.textContent = r.error);
+    precio = r.precioDesde;
+    extra = { precioDesde: r.precioDesde, presentaciones: r.presentaciones };
+  } else {
+    precio = Math.round(parseFloat($("precio").value) * 100) / 100;
+    if (!Number.isFinite(precio) || precio <= 0) return (msg.textContent = "Escribe un precio válido.");
+  }
 
   const btn = $("btn-guardar");
   btn.disabled = true;
@@ -225,7 +245,7 @@ $("btn-guardar").addEventListener("click", async () => {
     await update(ref(db), {
       [`productos/${usuario.uid}/${numero}`]: {
         numero, codigo, categoria: categoria.id, precio, foto, rutaFoto,
-        disponible: true, creadoEn: serverTimestamp()
+        disponible: true, creadoEn: serverTimestamp(), ...extra
       },
       [`negocios/${usuario.uid}/codigoDisponible`]: numero + 1,
       [`negocios/${usuario.uid}/totalItems`]: negocio.totalItems + 1
@@ -235,7 +255,7 @@ $("btn-guardar").addEventListener("click", async () => {
     negocio.codigoDisponible = numero + 1;
     negocio.totalItems += 1;
     pintarUso();
-    productos.unshift({ numero, codigo, precio, foto, rutaFoto, disponible: true });
+    productos.unshift({ numero, codigo, precio, foto, rutaFoto, disponible: true, presentaciones: extra.presentaciones || {} });
     pintarProductos();
     cerrarFormulario();
     toast(`Producto ${codigo} guardado`);

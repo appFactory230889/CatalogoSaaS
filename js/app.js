@@ -76,7 +76,27 @@ function pintarUso(negocio) {
   $("codigo-cliente").textContent = formatearCliente(negocio.codigoCliente);
 }
 
+function prepararCompartir(negocio) {
+  const url = new URL(`catalogo.html?t=${formatearCliente(negocio.codigoCliente)}`, location.href).href;
+  $("link-catalogo").textContent = url;
+  $("btn-ver-catalogo").href = url;
+  $("btn-compartir").onclick = async () => {
+    const datos = { title: negocio.nombre, text: `Mira el catálogo de ${negocio.nombre}`, url };
+    if (navigator.share) {
+      try { await navigator.share(datos); } catch {}
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast("Link copiado. Pégalo en WhatsApp o donde quieras.");
+    } catch {
+      prompt("Copia este link:", url);
+    }
+  };
+}
+
 async function mostrarPanel(negocio) {
+  prepararCompartir(negocio);
   $("saludo").textContent = `Hola, ${negocio.nombre}`;
   document.title = `${negocio.nombre} · App Factory`;
   pintarUso(negocio);

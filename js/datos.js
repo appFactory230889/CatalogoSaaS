@@ -12,7 +12,12 @@
 //   planes/{uid}/limite  solo lo edita App Factory (consola). Si no existe → 250
 //   productos/{uid}/{numero}
 //     numero, codigo "001-0001", categoria, precio, foto, rutaFoto, disponible, creadoEn
-import { db, ref, get, update, runTransaction, serverTimestamp } from "./firebase.js";
+//     precioDesde                        (Ropa) el precio más bajo
+//     presentaciones/{telaId}            (Ropa) { disponible, precios: { {tallaId}: 12.5 } }
+//   configCategorias/{uid}/ropa          (lectura pública: el catálogo necesita los nombres)
+//     telas/{id}  = { nombre, orden }
+//     tallas/{id} = { nombre, orden }
+import { db, ref, get, set, update, push, runTransaction, serverTimestamp } from "./firebase.js";
 
 export const LIMITE_GRATIS = 250;
 
@@ -40,6 +45,81 @@ export const formatearCliente = (codigoCliente) => String(codigoCliente).padStar
 
 export function formatearPrecio(precio) {
   return "$" + num(precio).toFixed(2);
+}
+
+// ---------------------------------------------------------------------
+// Configuración de Ropa: telas y tallas de cada negocio
+// ---------------------------------------------------------------------
+export const TELAS_INICIALES = ["Sin especificar", "Liverpool", "Piel de durazno", "Cárdigan", "Quiana"];
+export const TALLAS_INICIALES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+/** Id nuevo generado por Firebase (no escribe nada). */
+export const nuevoId = () => push(ref(db, "ids")).key;
+
+function listaOrdenada(nodo) {
+  const lista = [];
+  if (nodo && typeof nodo === "object") {
+    Object.entries(nodo).forEach(([id, v]) => {
+      if (v && typeof v.nombre === "string") lista.push({ id, nombre: v.nombre, orden: num(v.orden) });
+    });
+  }
+  return lista.sort((a, b) => a.orden - b.orden).map(({ id, nombre }) => ({ id, nombre }));
+}
+
+function aNodo(lista) {
+  const nodo = {};
+  lista.forEach((x, i) => (nodo[x.id] = { nombre: x.nombre, orden: i }));
+  return nodo;
+}
+
+/** Lee telas y tallas de Ropa. Funciona sin sesión (para el catálogo público). */
+export async function leerConfigRopa(uid) {
+  const d = (await get(ref(db, `configCategorias/${uid}/ropa`))).val() || {};
+  return { telas: listaOrdenada(d.telas), tallas: listaOrdenada(d.tallas), existe: !!(d.telas || d.tallas) };
+}
+
+export async function guardarConfigRopa(uid, config) {
+  await set(ref(db, `configCategorias/${uid}/ropa`), { telas: aNodo(config.telas), tallas: aNodo(config.tallas) });
+}
+
+/** La primera vez, crea las telas y tallas de ejemplo para que la dueña no empiece en blanco. */
+export async function asegurarConfigRopa(uid) {
+  const config = await leerConfigRopa(uid);
+  if (config.existe) return config;
+  const inicial = {
+    telas: TELAS_INICIALES.map((nombre) => ({ id: nuevoId(), nombre })),
+    tallas: TALLAS_INICIALES.map((nombre) => ({ id: nuevoId(), nombre }))
+  };
+  await guardarConfigRopa(uid, inicial);
+  return { ...inicial, existe: true };
+}
+
+/** Normaliza presentaciones leídas de Firebase (no confiar en los tipos). */
+export function leerPresentaciones(nodo) {
+  const salida = {};
+  if (!nodo || typeof nodo !== "object") return salida;
+  Object.entries(nodo).forEach(([telaId, pr]) => {
+    if (!pr || typeof pr !== "object") return;
+    const precios = {};
+    Object.entries(pr.precios || {}).forEach(([tallaId, v]) => {
+      if (typeof v === "number" && v > 0) precios[tallaId] = v;
+    });
+    if (Object.keys(precios).length) salida[telaId] = { disponible: pr.disponible !== false, precios };
+  });
+  return salida;
+}
+
+export function rangoPrecios(precios) {
+  const v = Object.values(precios);
+  if (!v.length) return "";
+  const min = Math.min(...v), max = Math.max(...v);
+  return min === max ? formatearPrecio(min) : `${formatearPrecio(min)} – ${formatearPrecio(max)}`;
+}
+
+/** ¿El producto tiene más de un precio posible? (para mostrar "desde $X") */
+export function tieneVariosPrecios(presentaciones) {
+  const todos = new Set(Object.values(presentaciones).flatMap((p) => Object.values(p.precios)));
+  return todos.size > 1;
 }
 
 /** Lee el negocio con valores seguros. */

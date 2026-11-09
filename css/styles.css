@@ -362,6 +362,53 @@ a.btn, a.categoria { text-decoration: none; }
 .json summary { cursor: pointer; color: var(--primario); font-weight: 600; }
 .json pre { background: #0F1730; color: #E3E8F4; padding: 12px; border-radius: 10px; overflow: auto; max-height: 320px; font-size: .78rem; }
 
+/* ---------- Catálogo público ---------- */
+.catalogo-publico .brand-sm .brand-name { text-transform: none; letter-spacing: 0; }
+.filtros { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 14px; }
+.filtros .chips { margin: 0; }
+.filtros input[type=search] { max-width: 260px; padding: 9px 12px; }
+.grid-publico { margin-top: 16px; }
+.producto-publico { font: inherit; color: inherit; text-align: left; padding: 0; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.producto-publico:hover { transform: translateY(-2px); box-shadow: var(--sombra); }
+.producto-publico:focus-visible { outline: 3px solid var(--primario-suave); outline-offset: 2px; }
+
+.detalle {
+  border: 0; padding: 0; border-radius: 18px; overflow: hidden;
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 32px);
+  background: var(--superficie); box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+.detalle::backdrop { background: rgba(15, 23, 48, .65); }
+.detalle img { display: block; width: 100%; max-height: calc(100vh - 120px); object-fit: contain; background: #0F1730; }
+.detalle { overflow-y: auto; }
+.detalle img { max-height: 60vh; }
+.detalle-info { padding: 14px 18px 18px; }
+.detalle-fila { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.detalle .ficha-etiqueta { margin-top: 10px; }
+.detalle .chips { margin: 6px 0 0; }
+.subtitulo { font-size: 1rem; margin: 6px 0 2px; }
+.form-producto { max-width: 680px; }
+.form-producto .sub a { color: var(--primario); font-weight: 600; }
+.detalle-precio { font-size: 1.35rem; font-weight: 800; color: #D9480F; }
+.detalle-cerrar {
+  position: absolute; top: 10px; right: 10px; z-index: 1;
+  width: 36px; height: 36px; border-radius: 50%; border: 0; cursor: pointer;
+  background: rgba(255,255,255,.92); font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+
+/* Botón compartir en el panel */
+.compartir {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  margin-top: 14px; padding: 14px 16px; border-radius: var(--radio);
+  background: linear-gradient(135deg, var(--primario), #2B3F73); color: #fff;
+}
+.compartir-texto { flex: 1; min-width: 200px; }
+.compartir-texto strong { display: block; }
+.compartir-texto span { font-size: .82rem; opacity: .8; word-break: break-all; }
+.compartir .btn { background: var(--acento); color: #1B1205; }
+.compartir .btn:hover { background: #F7A266; }
+.compartir .btn-ver { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
+.compartir .btn-ver:hover { background: rgba(255,255,255,.1); }
+
 /* ---------- Pie "Powered by" ---------- */
 .pie { display: flex; justify-content: center; padding: 8px 16px 28px; }
 .pie img { width: 180px; height: auto; opacity: .85; mix-blend-mode: multiply; }

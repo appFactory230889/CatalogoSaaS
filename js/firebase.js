@@ -6,7 +6,7 @@ import {
   sendPasswordResetEmail, signInWithPopup, signInWithRedirect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getDatabase, ref, get, set, update, runTransaction,
+  getDatabase, ref, get, set, update, push, runTransaction,
   query, orderByChild, equalTo, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
@@ -29,6 +29,6 @@ export {
   onAuthStateChanged, signOut,
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendPasswordResetEmail, signInWithPopup, signInWithRedirect,
-  ref, get, set, update, runTransaction, query, orderByChild, equalTo, serverTimestamp,
+  ref, get, set, update, push, runTransaction, query, orderByChild, equalTo, serverTimestamp,
   sRef, uploadBytes, getDownloadURL, deleteObject
 };
