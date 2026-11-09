@@ -1,6 +1,9 @@
 // Página de presentación (pública).
 import { auth, configLista, onAuthStateChanged } from "./firebase.js";
 import { PRECIO_PREMIUM_MES, CONTACTO, linkWhatsApp } from "./datos.js";
+import { registrarServiceWorker } from "./instalar.js";
+
+registrarServiceWorker();
 
 // El precio se define en js/datos.js (PRECIO_PREMIUM_MES). null = "Consultar" (por WhatsApp).
 const PRECIO_PREMIUM = PRECIO_PREMIUM_MES ? { monto: `$${PRECIO_PREMIUM_MES}`, periodo: "al mes" } : null;
@@ -17,12 +20,25 @@ $("link-correo").href = `mailto:${CONTACTO.correo}?subject=${encodeURIComponent(
 $("texto-correo").textContent = CONTACTO.correo;
 $("anio").textContent = new Date().getFullYear();
 
-// Si ya tiene sesión, el botón de arriba la lleva directo a su panel.
+// Con sesión iniciada: directo al panel (salvo con ?ver=inicio, para ver esta página a propósito).
+const verInicio = new URLSearchParams(location.search).has("ver");
+const mostrarPagina = () => document.documentElement.classList.remove("redirigiendo");
+setTimeout(mostrarPagina, 4000); // por si Firebase tarda en responder
+
 if (configLista) {
   onAuthStateChanged(auth, (user) => {
+    if (user && !verInicio) {
+      location.replace("app.html");
+      return;
+    }
     if (user) {
       $("btn-ingresar").textContent = "Ir a mi panel";
       $("btn-ingresar").href = "app.html";
+    } else {
+      try { localStorage.removeItem("afc-sesion"); } catch {}
     }
+    mostrarPagina();
   });
+} else {
+  mostrarPagina();
 }

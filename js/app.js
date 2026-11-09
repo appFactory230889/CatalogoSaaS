@@ -7,6 +7,9 @@ import {
 } from "./datos.js";
 import { linkCatalogo, compartirLink } from "./compartir.js";
 import { iniciarPagos } from "./pagos.js";
+import { iniciarInstalacion } from "./instalar.js";
+
+iniciarInstalacion();
 
 const $ = (id) => document.getElementById(id);
 const vistas = {
@@ -149,6 +152,7 @@ $("form-negocio").addEventListener("submit", async (e) => {
 });
 
 $("btn-salir").addEventListener("click", async () => {
+  try { localStorage.removeItem("afc-sesion"); } catch {}
   await signOut(auth);
   location.replace("ingresar.html");
 });
@@ -158,9 +162,12 @@ if (!configLista) {
 } else {
   onAuthStateChanged(auth, (user) => {
     if (!user) {
+      try { localStorage.removeItem("afc-sesion"); } catch {}
       location.replace("ingresar.html");
       return;
     }
+    // Recordar que hay sesión: la página de inicio la manda directo aquí.
+    try { localStorage.setItem("afc-sesion", "1"); } catch {}
     usuario = user;
     $("contacto").textContent = user.email || "";
     // El botón "Admin" solo aparece para las cuentas de App Factory (admins/{uid} = true).

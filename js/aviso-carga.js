@@ -6,7 +6,7 @@
   var ARCHIVOS = [
     "js/firebase.js", "js/firebase-config.js", "js/datos.js", "js/presentaciones.js",
     "js/marca-codigo.js", "js/compartir.js", "js/especificaciones.js", "js/auth.js", "js/app.js", "js/categoria.js",
-    "js/configuracion.js", "js/catalogo.js", "js/pagos.js", "js/admin.js", "css/styles.css"
+    "js/configuracion.js", "js/catalogo.js", "js/pagos.js", "js/admin.js", "js/instalar.js", "css/styles.css"
   ];
 
   function recargarSinCache() {

@@ -8,7 +8,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="img/logo-catalogo.png">
-  <link rel="apple-touch-icon" href="img/logo-catalogo.png">
+  <link rel="apple-touch-icon" href="img/icono-apple.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1E2F5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="AF Catalog">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="app-page">
@@ -82,6 +86,16 @@
       </div>
       <div id="mis-pagos" class="mis-pagos" hidden></div>
 
+      <div id="instalar-app" class="instalar-app" hidden>
+        <img src="img/icono-192.png" alt="" width="44" height="44">
+        <div>
+          <strong>Instala App Factory Catalog en tu celular</strong>
+          <p class="instalar-texto">Ábrela desde tu pantalla de inicio, como cualquier app.</p>
+        </div>
+        <button type="button" class="btn btn-primario btn-sm" hidden>📲 Instalar app</button>
+        <button type="button" class="instalar-cerrar" aria-label="Cerrar">✕</button>
+      </div>
+
       <div class="compartir">
         <div class="compartir-texto">
           <strong>Tu catálogo para clientas</strong>
@@ -97,8 +111,9 @@
     </section>
   </main>
 
-  <footer class="pie">
+  <footer class="pie pie-panel">
     <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+    <a href="./?ver=inicio" class="link-inicio">Ver página de inicio</a>
   </footer>
 
   <dialog id="dialogo-pago" class="dialogo">
