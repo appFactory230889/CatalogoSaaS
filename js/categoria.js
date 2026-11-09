@@ -6,7 +6,7 @@ import {
 } from "./firebase.js";
 import {
   categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num,
-  pintarUsoPlan, LINK_SUSCRIPCION,
+  pintarUsoPlan, linkWhatsApp,
   asegurarConfigCategoria, leerPresentaciones, leerAtributos, tieneVariosPrecios
 } from "./datos.js";
 import { especDe, textos } from "./especificaciones.js";
@@ -316,7 +316,9 @@ $("btn-guardar").addEventListener("click", async () => {
     pintarUso();
     if (negocio.totalItems >= negocio.limite) {
       msg.innerHTML = `Llegaste al límite de ${negocio.limite} productos. <a target="_blank" rel="noopener">Amplía tu plan por WhatsApp</a>.`;
-      msg.querySelector("a").href = LINK_SUSCRIPCION;
+      msg.querySelector("a").href = linkWhatsApp(
+        `Hola, soy ${negocio.nombre} (código de cliente ${String(negocio.codigoCliente).padStart(3, "0")}) y llegué al límite de productos. Quiero ampliar mi plan.`
+      );
       return;
     }
     const numero = negocio.codigoDisponible;

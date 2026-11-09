@@ -30,6 +30,17 @@ export const LIMITE_GRATIS = 250;
 export const PRECIO_PREMIUM_MES = 8;
 /** Límite de productos del plan Premium (sugerido al aprobar un pago). */
 export const LIMITE_PREMIUM = 1000;
+/** Contactos de App Factory. */
+export const CONTACTO = {
+  telefono: "+503 7541 5664",
+  whatsapp: "50375415664",            // solo dígitos, con código de país
+  correo: "sronquillo@appfactorysv.com"
+};
+
+/** Link de WhatsApp con un mensaje ya escrito. */
+export const linkWhatsApp = (mensaje = "") =>
+  `https://wa.me/${CONTACTO.whatsapp}${mensaje ? `?text=${encodeURIComponent(mensaje)}` : ""}`;
+
 /** Contacto de App Factory para ampliar el plan (suscripción). */
 export const LINK_SUSCRIPCION = "https://wa.me/message/BXIPDQMDA2INL1";
 const AVISO_DESDE = 0.9; // a partir del 90 % de uso se avisa con anticipación
@@ -51,7 +62,9 @@ export function pintarUsoPlan(negocio, textoUso) {
   uso.querySelector(".uso-aviso-texto").textContent = lleno
     ? `Llegaste al límite de ${negocio.limite} productos de tu plan. Para seguir subiendo productos, amplía tu plan con App Factory.`
     : `Te ${restantes === 1 ? "queda 1 espacio" : `quedan ${restantes} espacios`} de ${negocio.limite}. Si necesitas más, amplía tu plan con App Factory.`;
-  uso.querySelector(".btn-whatsapp").href = LINK_SUSCRIPCION;
+  uso.querySelector(".btn-whatsapp").href = negocio.nombre
+    ? linkWhatsApp(`Hola, soy ${negocio.nombre} (código de cliente ${formatearCliente(negocio.codigoCliente)}) y quiero ampliar mi plan de App Factory Catalog.`)
+    : LINK_SUSCRIPCION;
   return lleno;
 }
 

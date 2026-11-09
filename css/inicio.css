@@ -162,7 +162,12 @@ html { scroll-behavior: smooth; }
 .inicio-pie { padding: 30px 0 90px; background: var(--bg); }
 .inicio-pie-grid { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; font-size: .85rem; color: var(--texto-suave); }
 .inicio-pie-grid img { width: 170px; height: auto; mix-blend-mode: multiply; }
-.inicio-pie nav { display: flex; gap: 18px; }
+.inicio-pie nav { display: flex; gap: 18px; flex-wrap: wrap; }
+.contactos-pie { display: flex; flex-direction: column; gap: 6px; }
+.contactos-titulo { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--primario); }
+.contactos-pie a { display: inline-flex; align-items: center; gap: 8px; }
+.contactos-pie a svg { flex: 0 0 auto; }
+#link-whatsapp svg { color: #1EA855; }
 .inicio-pie a { color: var(--texto-suave); font-weight: 600; text-decoration: none; }
 .inicio-pie a:hover { color: var(--primario); }
 

@@ -3,7 +3,7 @@ import {
   auth, db, configLista, onAuthStateChanged, signOut, ref, get
 } from "./firebase.js";
 import {
-  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan, LINK_SUSCRIPCION
+  CATEGORIAS, leerNegocio, registrarNegocio, formatearCliente, pintarUsoPlan, linkWhatsApp
 } from "./datos.js";
 import { linkCatalogo, compartirLink } from "./compartir.js";
 import { iniciarPagos } from "./pagos.js";
@@ -93,7 +93,9 @@ async function mostrarPanel(negocio) {
   $("aviso-bloqueo").hidden = !bloqueada;
   if (bloqueada) {
     $("bloqueo-motivo").textContent = `Motivo: ${negocio.bloqueo.motivo}`;
-    $("bloqueo-whatsapp").href = LINK_SUSCRIPCION;
+    $("bloqueo-whatsapp").href = linkWhatsApp(
+      `Hola, soy ${negocio.nombre} (código de cliente ${formatearCliente(negocio.codigoCliente)}). Mi cuenta de App Factory Catalog aparece suspendida.`
+    );
   }
   document.querySelector(".compartir").hidden = bloqueada;
   $("grid-categorias").hidden = bloqueada;
