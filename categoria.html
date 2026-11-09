@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App Factory · Categoría</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="img/logo-escudo.png">
+  <link rel="apple-touch-icon" href="img/logo-escudo.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-page">
+  <header class="topbar">
+    <div class="brand brand-sm">
+      <img class="brand-logo" src="img/logo-escudo.png" alt="" width="42" height="46">
+      <p class="brand-name">App Factory</p>
+    </div>
+    <div class="topbar-derecha">
+      <a href="app.html" class="btn btn-fantasma">← Categorías</a>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <section id="vista-cargando" class="cargando" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando…</p>
+    </section>
+
+    <section id="vista-categoria" hidden>
+      <div class="cabecera-categoria">
+        <span id="cat-icono" class="categoria-icono" aria-hidden="true"></span>
+        <div>
+          <h1 id="cat-nombre"></h1>
+          <p class="sub" id="cat-conteo"></p>
+        </div>
+      </div>
+
+      <div id="uso" class="uso">
+        <div class="uso-fila">
+          <span id="uso-texto"></span>
+        </div>
+        <div class="uso-pista"><div id="uso-barra" class="uso-barra"></div></div>
+        <p class="uso-aviso">Llegaste al límite del plan gratuito. Para subir más productos, contrata la suscripción de App Factory.</p>
+      </div>
+
+      <button type="button" id="btn-nuevo" class="btn btn-primario btn-nuevo">＋ Agregar producto</button>
+
+      <!-- Formulario para subir producto -->
+      <section id="form-producto" class="tarjeta form-producto" hidden>
+        <h2>Nuevo producto</h2>
+
+        <label class="selector-foto" id="selector-foto">
+          <input type="file" id="input-foto" accept="image/*" hidden>
+          <canvas id="lienzo" class="lienzo" hidden></canvas>
+          <span id="selector-texto" class="selector-texto">
+            <span class="selector-icono" aria-hidden="true">🖼️</span>
+            Toca para elegir una foto de tu galería
+          </span>
+        </label>
+        <p class="ayuda">El código <strong id="codigo-preview">—</strong> se coloca sobre la foto y así se guarda.</p>
+
+        <label class="campo">
+          <span>Precio (US$)</span>
+          <input id="precio" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+        </label>
+
+        <div class="especificaciones">
+          <span>Especificaciones</span>
+          <p>Las especificaciones de esta categoría se agregarán pronto.</p>
+        </div>
+
+        <p id="msg-producto" class="mensaje" role="alert"></p>
+
+        <div class="acciones">
+          <button type="button" id="btn-cancelar" class="btn btn-fantasma">Cancelar</button>
+          <button type="button" id="btn-guardar" class="btn btn-primario">Guardar producto</button>
+        </div>
+      </section>
+
+      <div id="lista-vacia" class="vacio" hidden>
+        <p class="emoji-grande" aria-hidden="true">📦</p>
+        <p>Aún no tienes productos en esta categoría.</p>
+      </div>
+      <div id="grid-productos" class="grid-productos"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/categoria.js"></script>
+</body>
+</html>

@@ -1,0 +1,305 @@
+// Productos de una categoría: subir (foto + código encima), listar, inhabilitar y borrar.
+import {
+  auth, db, storage, configLista, onAuthStateChanged,
+  ref, get, update, query, orderByChild, equalTo, serverTimestamp,
+  sRef, uploadBytes, getDownloadURL, deleteObject
+} from "./firebase.js";
+import {
+  categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num
+} from "./datos.js";
+
+const $ = (id) => document.getElementById(id);
+const categoria = categoriaPorId(new URLSearchParams(location.search).get("c"));
+const ANCHO_MAXIMO = 1080; // px de la imagen final
+
+let usuario = null;
+let negocio = null;
+let productos = [];
+let imagen = null; // HTMLImageElement elegido
+
+// ---------- utilidades de UI ----------
+let toastTimer;
+function toast(texto) {
+  const el = $("toast");
+  el.textContent = texto;
+  el.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("visible"), 2600);
+}
+
+function pintarUso() {
+  const usados = negocio.totalItems;
+  const lleno = usados >= negocio.limite;
+  $("uso-texto").textContent = `${usados} de ${negocio.limite} productos usados en tu catálogo`;
+  $("uso-barra").style.width = Math.min(100, Math.round((usados / negocio.limite) * 100)) + "%";
+  $("uso").classList.toggle("lleno", lleno);
+  $("btn-nuevo").disabled = lleno;
+}
+
+function pintarProductos() {
+  const grid = $("grid-productos");
+  grid.innerHTML = "";
+  $("cat-conteo").textContent = `${productos.length} producto${productos.length === 1 ? "" : "s"}`;
+  $("lista-vacia").hidden = productos.length > 0;
+
+  productos.forEach((p) => {
+    const card = document.createElement("article");
+    card.className = "producto" + (p.disponible ? "" : " inhabilitado");
+    card.innerHTML = `
+      <div class="producto-foto">
+        <img loading="lazy" alt="">
+        <span class="producto-estado">Inhabilitado</span>
+      </div>
+      <div class="producto-info">
+        <div class="producto-fila">
+          <strong class="producto-codigo"></strong>
+          <span class="producto-precio"></span>
+        </div>
+        <div class="producto-fila">
+          <label class="interruptor">
+            <input type="checkbox">
+            <span class="interruptor-pista" aria-hidden="true"></span>
+            <span>Disponible</span>
+          </label>
+          <button type="button" class="btn-icono" title="Borrar producto" aria-label="Borrar producto">🗑️</button>
+        </div>
+      </div>`;
+    card.querySelector("img").src = p.foto;
+    card.querySelector("img").alt = `Producto ${p.codigo}`;
+    card.querySelector(".producto-codigo").textContent = p.codigo;
+    card.querySelector(".producto-precio").textContent = formatearPrecio(p.precio);
+
+    const check = card.querySelector("input[type=checkbox]");
+    check.checked = p.disponible;
+    check.addEventListener("change", () => cambiarDisponible(p, check));
+    card.querySelector(".btn-icono").addEventListener("click", () => borrarProducto(p));
+    grid.appendChild(card);
+  });
+}
+
+// ---------- carga ----------
+async function cargarProductos() {
+  const snap = await get(query(ref(db, `productos/${usuario.uid}`), orderByChild("categoria"), equalTo(categoria.id)));
+  const lista = [];
+  snap.forEach((hijo) => {
+    const d = hijo.val() || {};
+    if (typeof d.foto !== "string" || typeof d.codigo !== "string") return;
+    lista.push({
+      numero: num(d.numero),
+      codigo: d.codigo,
+      precio: num(d.precio),
+      foto: d.foto,
+      rutaFoto: typeof d.rutaFoto === "string" ? d.rutaFoto : "",
+      disponible: d.disponible !== false
+    });
+  });
+  productos = lista.sort((a, b) => b.numero - a.numero);
+  pintarProductos();
+}
+
+async function iniciar(user) {
+  usuario = user;
+  negocio = await leerNegocio(user.uid);
+  if (!negocio.nombre || !negocio.codigoCliente) {
+    location.replace("app.html");
+    return;
+  }
+  $("cat-icono").textContent = categoria.icono;
+  $("cat-icono").style.setProperty("--acento", categoria.color);
+  $("cat-nombre").textContent = categoria.nombre;
+  document.title = `${categoria.nombre} · App Factory`;
+  pintarUso();
+  await cargarProductos();
+  $("vista-cargando").hidden = true;
+  $("vista-categoria").hidden = false;
+}
+
+// ---------- foto + código ----------
+async function dibujar(codigo) {
+  const lienzo = $("lienzo");
+  const escala = Math.min(1, ANCHO_MAXIMO / imagen.naturalWidth);
+  lienzo.width = Math.round(imagen.naturalWidth * escala);
+  lienzo.height = Math.round(imagen.naturalHeight * escala);
+  const ctx = lienzo.getContext("2d");
+  ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+
+  // Código al centro: letras blancas con contorno negro (igual que la app Android).
+  const tamano = Math.round(Math.max(28, lienzo.width * 0.09));
+  try { await document.fonts.load(`800 ${tamano}px Montserrat`); } catch {}
+  ctx.font = `800 ${tamano}px Montserrat, "Plus Jakarta Sans", sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineJoin = "round";
+  ctx.lineWidth = Math.max(4, tamano * 0.18);
+  ctx.strokeStyle = "#000";
+  ctx.strokeText(codigo, lienzo.width / 2, lienzo.height / 2);
+  ctx.fillStyle = "#fff";
+  ctx.fillText(codigo, lienzo.width / 2, lienzo.height / 2);
+}
+
+function codigoSiguiente() {
+  return formatearCodigo(negocio.codigoCliente, negocio.codigoDisponible);
+}
+
+$("input-foto").addEventListener("change", (e) => {
+  const archivo = e.target.files?.[0];
+  if (!archivo) return;
+  if (!archivo.type.startsWith("image/")) {
+    $("msg-producto").textContent = "El archivo debe ser una imagen.";
+    return;
+  }
+  const url = URL.createObjectURL(archivo);
+  const img = new Image();
+  img.onload = async () => {
+    imagen = img;
+    await dibujar(codigoSiguiente());
+    $("lienzo").hidden = false;
+    $("selector-texto").hidden = true;
+    $("msg-producto").textContent = "";
+    URL.revokeObjectURL(url);
+  };
+  img.onerror = () => {
+    $("msg-producto").textContent = "No se pudo abrir esa imagen. Prueba con otra (JPG o PNG).";
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+function abrirFormulario() {
+  imagen = null;
+  $("input-foto").value = "";
+  $("precio").value = "";
+  $("lienzo").hidden = true;
+  $("selector-texto").hidden = false;
+  $("msg-producto").textContent = "";
+  $("codigo-preview").textContent = codigoSiguiente();
+  $("form-producto").hidden = false;
+  $("btn-nuevo").hidden = true;
+  $("form-producto").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function cerrarFormulario() {
+  $("form-producto").hidden = true;
+  $("btn-nuevo").hidden = false;
+}
+
+$("btn-nuevo").addEventListener("click", abrirFormulario);
+$("btn-cancelar").addEventListener("click", cerrarFormulario);
+
+// ---------- guardar ----------
+$("btn-guardar").addEventListener("click", async () => {
+  const msg = $("msg-producto");
+  const precio = Math.round(parseFloat($("precio").value) * 100) / 100;
+  if (!imagen) return (msg.textContent = "Elige una foto.");
+  if (!Number.isFinite(precio) || precio <= 0) return (msg.textContent = "Escribe un precio válido.");
+
+  const btn = $("btn-guardar");
+  btn.disabled = true;
+  btn.textContent = "Guardando…";
+  msg.textContent = "";
+  let archivo = null;
+  try {
+    // 1. Leer el contador más reciente (puede haber cambiado en otro dispositivo).
+    negocio = await leerNegocio(usuario.uid);
+    pintarUso();
+    if (negocio.totalItems >= negocio.limite) {
+      msg.textContent = `Llegaste al límite de ${negocio.limite} productos. Para subir más, contrata la suscripción.`;
+      return;
+    }
+    const numero = negocio.codigoDisponible;
+    const codigo = formatearCodigo(negocio.codigoCliente, numero);
+
+    // 2. "Captura": la foto con el código encima.
+    await dibujar(codigo);
+    $("codigo-preview").textContent = codigo;
+    const blob = await new Promise((r) => $("lienzo").toBlob(r, "image/jpeg", 0.88));
+    if (!blob) throw new Error("No se pudo generar la imagen");
+
+    // 3. Subir a Storage con el nombre del código.
+    const rutaFoto = `catalogos/${usuario.uid}/${codigo}.jpg`;
+    archivo = sRef(storage, rutaFoto);
+    await uploadBytes(archivo, blob, { contentType: "image/jpeg", cacheControl: "public,max-age=31536000" });
+    const foto = await getDownloadURL(archivo);
+
+    // 4. Guardar producto y sumar +1 a los contadores, todo en una sola escritura.
+    await update(ref(db), {
+      [`productos/${usuario.uid}/${numero}`]: {
+        numero, codigo, categoria: categoria.id, precio, foto, rutaFoto,
+        disponible: true, creadoEn: serverTimestamp()
+      },
+      [`negocios/${usuario.uid}/codigoDisponible`]: numero + 1,
+      [`negocios/${usuario.uid}/totalItems`]: negocio.totalItems + 1
+    });
+    archivo = null;
+
+    negocio.codigoDisponible = numero + 1;
+    negocio.totalItems += 1;
+    pintarUso();
+    productos.unshift({ numero, codigo, precio, foto, rutaFoto, disponible: true });
+    pintarProductos();
+    cerrarFormulario();
+    toast(`Producto ${codigo} guardado`);
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "No se pudo guardar el producto. Intenta de nuevo.";
+    if (archivo) deleteObject(archivo).catch(() => {});
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Guardar producto";
+  }
+});
+
+// ---------- inhabilitar / borrar ----------
+async function cambiarDisponible(p, check) {
+  check.disabled = true;
+  try {
+    await update(ref(db, `productos/${usuario.uid}/${p.numero}`), { disponible: check.checked });
+    p.disponible = check.checked;
+    pintarProductos();
+    toast(p.disponible ? `${p.codigo} disponible` : `${p.codigo} inhabilitado`);
+  } catch (err) {
+    console.error(err);
+    check.checked = p.disponible;
+    toast("No se pudo cambiar. Intenta de nuevo.");
+  } finally {
+    check.disabled = false;
+  }
+}
+
+async function borrarProducto(p) {
+  const ok = confirm(`¿Borrar el producto ${p.codigo}?\n\nSe elimina para siempre y libera un espacio de tu límite. El código ${p.codigo} no se vuelve a usar.`);
+  if (!ok) return;
+  try {
+    negocio = await leerNegocio(usuario.uid);
+    await update(ref(db), {
+      [`productos/${usuario.uid}/${p.numero}`]: null,
+      [`negocios/${usuario.uid}/totalItems`]: negocio.totalItems - 1,
+      [`negocios/${usuario.uid}/ultimoBorrado`]: String(p.numero)
+    });
+    if (p.rutaFoto) deleteObject(sRef(storage, p.rutaFoto)).catch(() => {});
+    negocio.totalItems -= 1;
+    productos = productos.filter((x) => x.numero !== p.numero);
+    pintarUso();
+    pintarProductos();
+    toast(`Producto ${p.codigo} borrado`);
+  } catch (err) {
+    console.error(err);
+    toast("No se pudo borrar. Intenta de nuevo.");
+  }
+}
+
+// ---------- arranque ----------
+if (!configLista || !categoria) {
+  location.replace(configLista ? "app.html" : "index.html");
+} else {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      location.replace("index.html");
+      return;
+    }
+    iniciar(user).catch((err) => {
+      console.error(err);
+      $("vista-cargando").innerHTML = "<p>No se pudo cargar la categoría. Revisa tu conexión o las reglas de Firebase.</p>";
+    });
+  });
+}

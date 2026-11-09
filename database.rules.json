@@ -1,0 +1,72 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "contadores": {
+      "ultimoCodigoCliente": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || (data.exists() && newData.val() === data.val() + 1))"
+      }
+    },
+
+    "codigosCliente": {
+      "$n": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists()",
+        ".validate": "newData.isString() && newData.val() === auth.uid"
+      }
+    },
+
+    "planes": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+
+    "negocios": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && newData.exists()",
+        ".validate": "newData.hasChildren(['nombre', 'codigoCliente', 'codigoDisponible', 'totalItems'])",
+        "nombre": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60"
+        },
+        "contacto": { ".validate": "newData.isString()" },
+        "creadoEn": { ".validate": "newData.isNumber()" },
+        "codigoCliente": {
+          ".validate": "newData.isNumber() && ((data.exists() && newData.val() === data.val()) || (!data.exists() && newData.parent().parent().parent().child('codigosCliente').child(newData.val() + '').val() === $uid))"
+        },
+        "codigoDisponible": {
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 1) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().parent().parent().child('productos').child($uid).child(data.val() + '').exists() && !root.child('productos').child($uid).child(data.val() + '').exists()))"
+        },
+        "totalItems": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() === 0) || newData.val() === data.val() || (newData.val() === data.val() + 1 && newData.parent().child('codigoDisponible').val() === data.parent().child('codigoDisponible').val() + 1 && (newData.val() <= 250 || newData.val() <= root.child('planes').child($uid).child('limite').val())) || (newData.val() === data.val() - 1 && root.child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists() && !newData.parent().parent().parent().child('productos').child($uid).child(newData.parent().child('ultimoBorrado').val() + '').exists()))"
+        },
+        "ultimoBorrado": { ".validate": "newData.isString()" },
+        "$otro": { ".validate": false }
+      }
+    },
+
+    "productos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".indexOn": ["categoria"],
+        "$num": {
+          ".write": "auth != null && auth.uid === $uid && ((!data.exists() && newData.exists() && $num === root.child('negocios').child($uid).child('codigoDisponible').val() + '' && newData.parent().parent().parent().child('negocios').child($uid).child('codigoDisponible').val() === root.child('negocios').child($uid).child('codigoDisponible').val() + 1 && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() + 1) || (data.exists() && newData.exists() && newData.child('numero').val() === data.child('numero').val()) || (data.exists() && !newData.exists() && newData.parent().parent().parent().child('negocios').child($uid).child('ultimoBorrado').val() === $num && newData.parent().parent().parent().child('negocios').child($uid).child('totalItems').val() === root.child('negocios').child($uid).child('totalItems').val() - 1))",
+          ".validate": "newData.hasChildren(['numero', 'codigo', 'categoria', 'precio', 'foto', 'disponible']) && newData.child('numero').val() + '' === $num",
+          "numero": { ".validate": "newData.isNumber()" },
+          "codigo": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "categoria": { ".validate": "newData.isString() && newData.val().matches(/^(ropa|zapatos|joyeria|ninos|hogar)$/)" },
+          "precio": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "foto": { ".validate": "newData.isString() && newData.val().beginsWith('https://')" },
+          "rutaFoto": { ".validate": "newData.isString()" },
+          "disponible": { ".validate": "newData.isBoolean()" },
+          "creadoEn": { ".validate": "newData.isNumber()" },
+          "$otro": { ".validate": false }
+        }
+      }
+    }
+  }
+}

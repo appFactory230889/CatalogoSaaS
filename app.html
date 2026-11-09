@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>App Factory · Mi catálogo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="img/logo-escudo.png">
+  <link rel="apple-touch-icon" href="img/logo-escudo.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app-page">
+  <header class="topbar">
+    <div class="brand brand-sm">
+      <img class="brand-logo" src="img/logo-escudo.png" alt="" width="42" height="46">
+      <p class="brand-name">App Factory</p>
+    </div>
+    <div class="topbar-derecha">
+      <span class="contacto" id="contacto"></span>
+      <button type="button" id="btn-salir" class="btn btn-fantasma">Salir</button>
+    </div>
+  </header>
+
+  <main class="contenido">
+    <section id="vista-cargando" class="cargando" aria-live="polite">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Cargando…</p>
+    </section>
+
+    <section id="vista-onboarding" class="tarjeta onboarding" hidden>
+      <p class="emoji-grande" aria-hidden="true">🛍️</p>
+      <h1>¡Bienvenida!</h1>
+      <p class="sub">Para empezar, ¿cómo se llama tu negocio?</p>
+      <form id="form-negocio" novalidate>
+        <label class="campo">
+          <span>Nombre del negocio</span>
+          <input id="nombre-negocio" type="text" maxlength="60" placeholder="Ej. Boutique Carol" autocomplete="organization" required>
+        </label>
+        <p id="msg-negocio" class="mensaje" role="alert"></p>
+        <button type="submit" id="btn-guardar-negocio" class="btn btn-primario">Guardar y continuar</button>
+      </form>
+    </section>
+
+    <section id="vista-panel" hidden>
+      <h1 id="saludo" class="saludo"></h1>
+      <p class="sub">Elige una categoría para administrar tus productos.</p>
+
+      <div id="uso" class="uso">
+        <div class="uso-fila">
+          <span id="uso-texto">0 de 250 productos usados</span>
+          <span class="uso-cliente">Código de cliente <strong id="codigo-cliente">—</strong></span>
+        </div>
+        <div class="uso-pista"><div id="uso-barra" class="uso-barra"></div></div>
+        <p class="uso-aviso">Llegaste al límite del plan gratuito. Para subir más productos, contrata la suscripción de App Factory.</p>
+      </div>
+      <div id="grid-categorias" class="grid-categorias"></div>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <img src="img/powered-by.webp" alt="Powered by App Factory" width="220" height="47" loading="lazy">
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
