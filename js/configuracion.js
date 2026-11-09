@@ -172,13 +172,14 @@ function pintarTarjetas() {
     titulo: v.titulo, ayuda: v.ayuda, ejemplo: v.ejemplo, maxLargo: 40,
     items: config.variantes, conteo: () => uso.variantes, etiqueta: v.plural
   }));
+  const t = espec.tallas;
   cont.appendChild(crearTarjeta({
-    titulo: "Tallas",
-    ayuda: espec.tallas.conCm
+    titulo: t.plural[0].toUpperCase() + t.plural.slice(1),
+    ayuda: t.conCm
       ? "En el orden en que se mostrarán. Agrega el largo del pie en cm: tus clientas lo verán como guía de tallas."
-      : "En el orden en que se mostrarán. El precio puede cambiar según la talla.",
-    ejemplo: espec.tallas.ejemplo, maxLargo: 12, conCm: espec.tallas.conCm,
-    items: config.tallas, conteo: () => uso.tallas, etiqueta: "tallas"
+      : `En el orden en que se mostrarán. El precio puede cambiar según ${t.femenino ? "la" : "el"} ${t.singular}.`,
+    ejemplo: t.ejemplo, maxLargo: 20, conCm: t.conCm,
+    items: config.tallas, conteo: () => uso.tallas, etiqueta: t.plural
   }));
   espec.atributos.filter((a) => a.lista).forEach((a) => {
     config.listas[a.lista] ??= [];

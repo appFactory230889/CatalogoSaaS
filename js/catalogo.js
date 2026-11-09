@@ -10,7 +10,7 @@ import {
 } from "./datos.js";
 import { especDe } from "./especificaciones.js";
 import { crearSelectorPresentaciones } from "./presentaciones.js";
-import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
+import { linkCatalogo, compartirLink, descargarImagen, ICONO_COMPARTIR, ICONO_DESCARGAR } from "./compartir.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -19,7 +19,8 @@ let codigoCliente = 0;
 let nombreTienda = "Catálogo";
 let categoriaActual = null;
 let configs = {};           // configuración de cada categoría (variantes, tallas, listas)
-let filtro = null;          // { clave: "tipo", id } filtro activo dentro de la categoría
+let filtro = null;
+let productoAbierto = null;          // { clave: "tipo", id } filtro activo dentro de la categoría
 const selector = crearSelectorPresentaciones({
   contTelas: $("detalle-telas"), contTallas: $("detalle-tallas"),
   elTela: $("detalle-tela"), elTalla: $("detalle-talla"),
@@ -211,6 +212,7 @@ function pintarGrid() {
 }
 
 function abrirDetalle(p) {
+  productoAbierto = p;
   $("detalle-img").src = p.foto;
   $("detalle-img").alt = `Producto ${p.codigo}`;
   $("detalle-codigo").textContent = p.codigo;
@@ -220,7 +222,8 @@ function abrirDetalle(p) {
   const config = configs[p.categoria] || { variantes: [], tallas: [] };
   if (conOpciones && espec) {
     $("etiqueta-variante").textContent = espec.variante.singular[0].toUpperCase() + espec.variante.singular.slice(1);
-    selector.mostrar(p, config, espec.variante);
+    $("etiqueta-talla").textContent = espec.tallas.singular[0].toUpperCase() + espec.tallas.singular.slice(1);
+    selector.mostrar(p, config, espec.variante, espec.tallas);
   } else {
     $("detalle-precio").textContent = formatearPrecio(p.precio);
     $("detalle-nota").textContent = "";
@@ -260,6 +263,10 @@ $("detalle").addEventListener("click", (e) => { if (e.target === $("detalle")) $
 $("buscar").addEventListener("input", pintarGrid);
 
 $("btn-volver").addEventListener("click", () => history.back());
+$("btn-descargar").innerHTML = `${ICONO_DESCARGAR} Descargar imagen`;
+$("btn-descargar").addEventListener("click", () => {
+  if (productoAbierto) descargarImagen(productoAbierto.foto, productoAbierto.codigo, toast);
+});
 
 // Compartir: todo el catálogo, o solo la categoría que se está viendo.
 $("btn-compartir-todo").innerHTML = `${ICONO_COMPARTIR} Compartir catálogo`;

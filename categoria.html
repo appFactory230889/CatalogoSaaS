@@ -55,17 +55,18 @@
 
       <!-- Formulario para subir producto -->
       <section id="form-producto" class="tarjeta form-producto" hidden>
-        <h2>Nuevo producto</h2>
+        <h2 id="titulo-form">Nuevo producto</h2>
 
         <label class="selector-foto" id="selector-foto">
           <input type="file" id="input-foto" accept="image/*" hidden>
           <canvas id="lienzo" class="lienzo" hidden></canvas>
+          <img id="foto-actual" class="lienzo" alt="" hidden>
           <span id="selector-texto" class="selector-texto">
             <span class="selector-icono" aria-hidden="true">🖼️</span>
             Toca para elegir una foto de tu galería
           </span>
         </label>
-        <p class="ayuda">El código <strong id="codigo-preview">—</strong> se coloca sobre la foto y así se guarda.</p>
+        <p class="ayuda" id="ayuda-foto">El código <strong id="codigo-preview">—</strong> se coloca sobre la foto y así se guarda.</p>
 
         <!-- Categorías sin presentaciones: un solo precio -->
         <div id="bloque-precio-simple">

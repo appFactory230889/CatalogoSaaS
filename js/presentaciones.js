@@ -7,8 +7,9 @@ import { textos } from "./especificaciones.js";
 // =====================================================================
 // Editor (administradora)
 // =====================================================================
-export function crearEditorPresentaciones({ contChips, contPresentaciones, toast, variante }) {
+export function crearEditorPresentaciones({ contChips, contPresentaciones, toast, variante, tallas: specTallas }) {
   const tx = textos(variante);
+  const tt = textos(specTallas || { singular: "talla", plural: "tallas", femenino: true });
   let config = { variantes: [], tallas: [] };
   let borrador = {}; // { telaId: { disponible, mismoPrecio, precio, tallas: { tallaId: { activa, precio } } } }
 
@@ -56,7 +57,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
           <button type="button" class="btn-icono" data-acc="quitar" title="Quitar" aria-label="Quitar">✕</button>
         </div>
         <label class="check-linea">
-          <input type="checkbox" data-campo="mismo"> Mismo precio para todas las tallas
+          <input type="checkbox" data-campo="mismo"> Mismo precio para ${tt.todas} ${tt.las} ${tt.plural}
         </label>
         <div class="precio-unico" data-bloque="unico">
           <span>$</span><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" aria-label="Precio">
@@ -87,8 +88,8 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
       inputUnico.addEventListener("input", () => (pr.precio = inputUnico.value));
 
       caja.querySelector(".ayuda-tallas").textContent = pr.mismoPrecio
-        ? `Marca las tallas en que viene ${tx.esta.toLowerCase()} ${variante.singular}:`
-        : "Marca las tallas y escribe el precio de cada una:";
+        ? `Marca ${tt.las} ${tt.plural} en que viene ${tx.esta.toLowerCase()} ${variante.singular}:`
+        : `Marca ${tt.las} ${tt.plural} y escribe el precio de cada ${tt.singular === "tamaño" ? "uno" : "una"}:`;
 
       const grid = caja.querySelector(".grid-tallas");
       config.tallas.forEach((ta) => {
@@ -112,7 +113,7 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
       const otras = config.variantes.filter((o) => o.id !== t.id && borrador[o.id]);
       const pie = caja.querySelector(".presentacion-pie");
       if (otras.length) {
-        pie.innerHTML = `<span>Copiar tallas y precios de:</span>`;
+        pie.innerHTML = `<span>Copiar ${tt.plural} y precios de:</span>`;
         otras.forEach((o) => {
           const b = document.createElement("button");
           b.type = "button";
@@ -148,14 +149,14 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
     for (const id of ids) {
       const pr = borrador[id];
       const activas = config.tallas.filter((ta) => pr.tallas[ta.id]?.activa);
-      if (!activas.length) return { error: `${nombreTela(id)}: marca al menos una talla.` };
+      if (!activas.length) return { error: `${nombreTela(id)}: marca al menos ${tt.un} ${tt.singular}.` };
       const precios = {};
       for (const ta of activas) {
         const p = precioValido(pr.mismoPrecio ? pr.precio : pr.tallas[ta.id].precio);
         if (p === null) {
           return { error: pr.mismoPrecio
             ? `${nombreTela(id)}: escribe el precio.`
-            : `${nombreTela(id)}: falta el precio de la talla ${ta.nombre}.` };
+            : `${nombreTela(id)}: falta el precio de ${tt.la} ${tt.singular} ${ta.nombre}.` };
         }
         precios[ta.id] = p;
       }
@@ -168,6 +169,21 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
   return {
     setConfig(c) { config = c; pintar(); },
     reiniciar() { borrador = {}; pintar(); },
+    /** Carga las presentaciones de un producto ya guardado (para editarlo). */
+    cargar(presentaciones) {
+      borrador = {};
+      Object.entries(presentaciones || {}).forEach(([id, pr]) => {
+        const valores = Object.values(pr.precios);
+        const mismo = new Set(valores).size <= 1;
+        const tallas = {};
+        config.tallas.forEach((t) => {
+          const v = pr.precios[t.id];
+          tallas[t.id] = { activa: v !== undefined, precio: v !== undefined ? String(v) : "" };
+        });
+        borrador[id] = { disponible: pr.disponible, mismoPrecio: mismo, precio: mismo && valores.length ? String(valores[0]) : "", tallas };
+      });
+      pintar();
+    },
     construir
   };
 }
@@ -178,7 +194,8 @@ export function crearEditorPresentaciones({ contChips, contPresentaciones, toast
 export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elTalla, elPrecio, elNota, elGuia }) {
   let producto = null;
   let config = { variantes: [], tallas: [] };
-  let tx = { ...textos({ singular: "opción", plural: "opciones", femenino: true }), singular: "opción" };
+  let tx = textos({ singular: "opción", plural: "opciones", femenino: true });
+  let tt = textos({ singular: "talla", plural: "tallas", femenino: true });
   let tela = null, talla = null;
 
   const nombreDe = (lista, id) => lista.find((x) => x.id === id)?.nombre ?? "";
@@ -201,7 +218,7 @@ export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elT
     else if (talla) { elPrecio.textContent = formatearPrecio(pr.precios[talla]); elNota.textContent = ""; }
     else {
       elPrecio.textContent = rangoPrecios(pr.precios);
-      elNota.textContent = Object.keys(pr.precios).length > 1 ? "Elige una talla para ver su precio." : "";
+      elNota.textContent = Object.keys(pr.precios).length > 1 ? `Elige ${tt.un} ${tt.singular} para ver su precio.` : "";
     }
 
     elTela.textContent = pr ? nombreDe(telas, tela) : "";
@@ -240,9 +257,10 @@ export function crearSelectorPresentaciones({ contTelas, contTallas, elTela, elT
   }
 
   return {
-    mostrar(p, c, variante) {
+    mostrar(p, c, variante, specTallas) {
       producto = p; config = c; tela = null; talla = null;
-      if (variante) tx = { ...textos(variante), singular: variante.singular };
+      if (variante) tx = textos(variante);
+      if (specTallas) tt = textos(specTallas);
       pintar();
     },
     /** Tela y talla elegidas (para un futuro pedido por WhatsApp). */

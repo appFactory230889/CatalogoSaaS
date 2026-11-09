@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["https://appfactorysv.com", "http://appfactorysv.com", "https://www.appfactorysv.com", "http://localhost:8120"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -145,7 +145,11 @@ export function leerAtributos(categoriaId, nodo, config) {
   if (!espec || !nodo || typeof nodo !== "object") return salida;
   espec.atributos.forEach((a) => {
     const valor = nodo[a.clave];
-    if (typeof valor !== "string") return;
+    if (typeof valor !== "string" || !valor.trim()) return;
+    if (a.texto) {
+      salida.push({ clave: a.clave, etiqueta: a.nombre, id: valor, nombre: valor });
+      return;
+    }
     const opciones = a.lista ? config?.listas?.[a.lista] || [] : a.opciones;
     const nombre = opciones.find((o) => o.id === valor)?.nombre;
     if (nombre) salida.push({ clave: a.clave, etiqueta: a.nombre, id: valor, nombre });

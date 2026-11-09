@@ -424,6 +424,12 @@ a.btn, a.categoria { text-decoration: none; }
 .atributos dt { color: var(--texto-suave); }
 .atributos dd { margin: 0; font-weight: 600; }
 
+/* Editar / descargar */
+.producto-acciones { display: flex; gap: 6px; }
+.producto-acciones .btn { flex: 1; padding: 6px 8px; gap: 6px; }
+.producto-acciones svg { width: 15px; height: 15px; }
+.btn-descargar { width: 100%; margin-top: 14px; }
+
 /* Botón compartir en el panel */
 .compartir {
   display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;

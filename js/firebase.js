@@ -10,7 +10,7 @@ import {
   query, orderByChild, equalTo, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
-  getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject
+  getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject, updateMetadata
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { firebaseConfig } from "./firebase-config.js";
 
@@ -30,5 +30,5 @@ export {
   signInWithEmailAndPassword, createUserWithEmailAndPassword,
   sendPasswordResetEmail, signInWithPopup, signInWithRedirect,
   ref, get, set, update, push, runTransaction, query, orderByChild, equalTo, serverTimestamp,
-  sRef, uploadBytes, getDownloadURL, deleteObject
+  sRef, uploadBytes, getDownloadURL, deleteObject, updateMetadata
 };

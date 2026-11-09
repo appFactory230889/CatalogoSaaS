@@ -116,6 +116,15 @@
             "calce": {
               ".validate": "newData.isString() && newData.val().matches(/^(normal|pequena|grande)$/)"
             },
+            "genero": {
+              ".validate": "newData.isString() && newData.val().matches(/^(nina|nino|unisex)$/)"
+            },
+            "edad": {
+              ".validate": "newData.isString() && newData.val().matches(/^(0a12m|1a3|3a5|6a8|9a12|12mas)$/)"
+            },
+            "medidas": {
+              ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+            },
             "$otro": {
               ".validate": false
             }
@@ -178,6 +187,34 @@
             }
           },
           "tipos": {
+            "$id": {
+              ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
+              "nombre": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+              },
+              "orden": {
+                ".validate": "newData.isNumber()"
+              },
+              "$otro": {
+                ".validate": false
+              }
+            }
+          },
+          "materiales": {
+            "$id": {
+              ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
+              "nombre": {
+                ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 40"
+              },
+              "orden": {
+                ".validate": "newData.isNumber()"
+              },
+              "$otro": {
+                ".validate": false
+              }
+            }
+          },
+          "disenos": {
             "$id": {
               ".validate": "newData.hasChildren(['nombre', 'orden']) && $id.length <= 40",
               "nombre": {

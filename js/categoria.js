@@ -2,7 +2,7 @@
 import {
   auth, db, storage, configLista, onAuthStateChanged,
   ref, get, update, query, orderByChild, equalTo, serverTimestamp,
-  sRef, uploadBytes, getDownloadURL, deleteObject
+  sRef, uploadBytes, getDownloadURL, deleteObject, updateMetadata
 } from "./firebase.js";
 import {
   categoriaPorId, leerNegocio, formatearCodigo, formatearPrecio, num,
@@ -10,7 +10,9 @@ import {
 } from "./datos.js";
 import { especDe, textos } from "./especificaciones.js";
 import { crearEditorPresentaciones } from "./presentaciones.js";
-import { linkCatalogo, compartirLink, ICONO_COMPARTIR } from "./compartir.js";
+import {
+  linkCatalogo, compartirLink, descargarImagen, metadatosFoto, ICONO_COMPARTIR, ICONO_DESCARGAR
+} from "./compartir.js";
 import { dibujarCodigo } from "./marca-codigo.js";
 
 const $ = (id) => document.getElementById(id);
@@ -25,6 +27,7 @@ const espec = especDe(categoria?.id);           // null = categoría sin especif
 const usaPresentaciones = !!espec;
 let configCat = { variantes: [], tallas: [], listas: {} };
 let editor = null;
+let editando = null; // producto que se está editando (null = producto nuevo)
 
 // ---------- utilidades de UI ----------
 let toastTimer;
@@ -70,7 +73,11 @@ function pintarProductos() {
             <span class="interruptor-pista" aria-hidden="true"></span>
             <span>Disponible</span>
           </label>
-          <button type="button" class="btn-icono" title="Borrar producto" aria-label="Borrar producto">🗑️</button>
+          <button type="button" class="btn-icono" data-acc="borrar" title="Borrar producto" aria-label="Borrar producto">🗑️</button>
+        </div>
+        <div class="producto-acciones">
+          <button type="button" class="btn btn-fantasma btn-sm" data-acc="editar">✏️ Editar</button>
+          <button type="button" class="btn btn-fantasma btn-sm" data-acc="descargar" title="Descargar imagen">${ICONO_DESCARGAR}<span>Imagen</span></button>
         </div>
       </div>`;
     card.querySelector("img").src = p.foto;
@@ -92,7 +99,9 @@ function pintarProductos() {
     const check = card.querySelector("input[type=checkbox]");
     check.checked = p.disponible;
     check.addEventListener("change", () => cambiarDisponible(p, check));
-    card.querySelector(".btn-icono").addEventListener("click", () => borrarProducto(p));
+    card.querySelector('[data-acc="borrar"]').addEventListener("click", () => borrarProducto(p));
+    card.querySelector('[data-acc="editar"]').addEventListener("click", () => abrirFormulario(p));
+    card.querySelector('[data-acc="descargar"]').addEventListener("click", () => descargar(p));
     grid.appendChild(card);
   });
 }
@@ -110,6 +119,7 @@ async function cargarProductos() {
       precio: num(d.precioDesde, num(d.precio)),
       presentaciones: leerPresentaciones(d.presentaciones),
       atributos: leerAtributos(categoria.id, d.atributos, configCat),
+      atributosCrudos: d.atributos && typeof d.atributos === "object" ? d.atributos : {},
       foto: d.foto,
       rutaFoto: typeof d.rutaFoto === "string" ? d.rutaFoto : "",
       disponible: d.disponible !== false
@@ -144,11 +154,11 @@ async function iniciar(user) {
     const v = espec.variante, tx = textos(v);
     $("titulo-presentaciones").textContent = `Presentaciones (${v.plural})`;
     $("ayuda-presentaciones").textContent =
-      `Toca ${v.femenino ? "las" : "los"} ${v.plural} en que viene este producto. Cada ${v.singular} tiene sus propios precios por talla.`;
+      `Toca ${v.femenino ? "las" : "los"} ${v.plural} en que viene este producto. Cada ${v.singular} tiene sus propios precios por ${espec.tallas.singular}.`;
     $("link-config").href = `configuracion.html?c=${categoria.id}`;
-    $("link-config").textContent = `Editar ${v.plural} y tallas`;
+    $("link-config").textContent = `Editar ${v.plural} y ${espec.tallas.plural}`;
     editor = crearEditorPresentaciones({
-      contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast, variante: v
+      contChips: $("chips-telas"), contPresentaciones: $("presentaciones"), toast, variante: v, tallas: espec.tallas
     });
     editor.setConfig(configCat);
     pintarSelectoresAtributos();
@@ -165,9 +175,17 @@ function pintarSelectoresAtributos() {
   const cont = $("bloque-atributos");
   cont.innerHTML = "";
   espec.atributos.forEach((a) => {
-    const opciones = a.lista ? configCat.listas[a.lista] || [] : a.opciones;
     const label = document.createElement("label");
     label.className = "campo";
+    if (a.texto) {
+      label.innerHTML = `<span></span><input type="text" data-atributo="${a.clave}" autocomplete="off">`;
+      label.querySelector("span").textContent = a.nombre;
+      label.querySelector("input").placeholder = a.ejemplo;
+      label.querySelector("input").maxLength = a.maxLargo || 60;
+      cont.appendChild(label);
+      return;
+    }
+    const opciones = a.lista ? configCat.listas[a.lista] || [] : a.opciones;
     label.innerHTML = `<span></span><select data-atributo="${a.clave}"><option value="">Sin especificar</option></select>`;
     label.querySelector("span").textContent = a.nombre;
     const select = label.querySelector("select");
@@ -183,8 +201,9 @@ function pintarSelectoresAtributos() {
 
 function leerSelectoresAtributos() {
   const atributos = {};
-  document.querySelectorAll("#bloque-atributos select").forEach((s) => {
-    if (s.value) atributos[s.dataset.atributo] = s.value;
+  document.querySelectorAll("#bloque-atributos [data-atributo]").forEach((s) => {
+    const v = s.value.trim().replace(/\s+/g, " ");
+    if (v) atributos[s.dataset.atributo] = v;
   });
   return atributos;
 }
@@ -215,7 +234,8 @@ $("input-foto").addEventListener("change", (e) => {
   const img = new Image();
   img.onload = async () => {
     imagen = img;
-    await dibujar(codigoSiguiente());
+    await dibujar(editando ? editando.codigo : codigoSiguiente());
+    $("foto-actual").hidden = true;
     $("lienzo").hidden = false;
     $("selector-texto").hidden = true;
     $("msg-producto").textContent = "";
@@ -228,33 +248,46 @@ $("input-foto").addEventListener("change", (e) => {
   img.src = url;
 });
 
-function abrirFormulario() {
+function abrirFormulario(producto = null) {
+  editando = producto;
   imagen = null;
   $("input-foto").value = "";
-  $("precio").value = "";
-  editor?.reiniciar();
-  document.querySelectorAll("#bloque-atributos select").forEach((s) => (s.value = ""));
+  $("precio").value = producto && !usaPresentaciones ? producto.precio : "";
+  if (producto) editor?.cargar(producto.presentaciones);
+  else editor?.reiniciar();
+  document.querySelectorAll("#bloque-atributos [data-atributo]").forEach((s) => {
+    const v = producto?.atributosCrudos?.[s.dataset.atributo];
+    s.value = typeof v === "string" ? v : "";
+  });
   $("lienzo").hidden = true;
-  $("selector-texto").hidden = false;
+  $("foto-actual").hidden = !producto;
+  if (producto) $("foto-actual").src = producto.foto;
+  $("selector-texto").hidden = !!producto;
   $("msg-producto").textContent = "";
-  $("codigo-preview").textContent = codigoSiguiente();
+  $("titulo-form").textContent = producto ? `Editar ${producto.codigo}` : "Nuevo producto";
+  $("btn-guardar").textContent = producto ? "Guardar cambios" : "Guardar producto";
+  $("ayuda-foto").innerHTML = producto
+    ? "Toca la foto si quieres cambiarla. Se mantiene el código <strong></strong>."
+    : "El código <strong></strong> se coloca sobre la foto y así se guarda.";
+  $("ayuda-foto").querySelector("strong").textContent = producto ? producto.codigo : codigoSiguiente();
   $("form-producto").hidden = false;
   $("btn-nuevo").hidden = true;
   $("form-producto").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function cerrarFormulario() {
+  editando = null;
   $("form-producto").hidden = true;
   $("btn-nuevo").hidden = false;
 }
 
-$("btn-nuevo").addEventListener("click", abrirFormulario);
+$("btn-nuevo").addEventListener("click", () => abrirFormulario());
 $("btn-cancelar").addEventListener("click", cerrarFormulario);
 
 // ---------- guardar ----------
 $("btn-guardar").addEventListener("click", async () => {
   const msg = $("msg-producto");
-  if (!imagen) return (msg.textContent = "Elige una foto.");
+  if (!imagen && !editando) return (msg.textContent = "Elige una foto.");
   let precio, extra = {};
   if (usaPresentaciones) {
     const r = editor.construir();
@@ -263,6 +296,7 @@ $("btn-guardar").addEventListener("click", async () => {
     extra = { precioDesde: r.precioDesde, presentaciones: r.presentaciones };
     const atributos = leerSelectoresAtributos();
     if (Object.keys(atributos).length) extra.atributos = atributos;
+    else if (editando) extra.atributos = null; // quitar especificaciones borradas
   } else {
     precio = Math.round(parseFloat($("precio").value) * 100) / 100;
     if (!Number.isFinite(precio) || precio <= 0) return (msg.textContent = "Escribe un precio válido.");
@@ -272,6 +306,12 @@ $("btn-guardar").addEventListener("click", async () => {
   btn.disabled = true;
   btn.textContent = "Guardando…";
   msg.textContent = "";
+  if (editando) {
+    await guardarEdicion(editando, precio, extra, msg);
+    btn.disabled = false;
+    btn.textContent = editando ? "Guardar cambios" : "Guardar producto";
+    return;
+  }
   let archivo = null;
   try {
     // 1. Leer el contador más reciente (puede haber cambiado en otro dispositivo).
@@ -293,7 +333,7 @@ $("btn-guardar").addEventListener("click", async () => {
     // 3. Subir a Storage con el nombre del código.
     const rutaFoto = `catalogos/${usuario.uid}/${codigo}.jpg`;
     archivo = sRef(storage, rutaFoto);
-    await uploadBytes(archivo, blob, { contentType: "image/jpeg", cacheControl: "public,max-age=31536000" });
+    await uploadBytes(archivo, blob, metadatosFoto(codigo));
     const foto = await getDownloadURL(archivo);
 
     // 4. Guardar producto y sumar +1 a los contadores, todo en una sola escritura.
@@ -324,6 +364,49 @@ $("btn-guardar").addEventListener("click", async () => {
     btn.textContent = "Guardar producto";
   }
 });
+
+// ---------- editar ----------
+async function guardarEdicion(p, precio, extra, msg) {
+  try {
+    const cambios = { precio, ...extra };
+    if (imagen) {
+      // Foto nueva: se dibuja el MISMO código y reemplaza a la anterior en Storage.
+      await dibujar(p.codigo);
+      const blob = await new Promise((r) => $("lienzo").toBlob(r, "image/jpeg", 0.88));
+      if (!blob) throw new Error("No se pudo generar la imagen");
+      const rutaFoto = p.rutaFoto || `catalogos/${usuario.uid}/${p.codigo}.jpg`;
+      const archivo = sRef(storage, rutaFoto);
+      await uploadBytes(archivo, blob, metadatosFoto(p.codigo));
+      cambios.foto = await getDownloadURL(archivo);
+      cambios.rutaFoto = rutaFoto;
+    }
+    await update(ref(db, `productos/${usuario.uid}/${p.numero}`), cambios);
+
+    Object.assign(p, {
+      precio,
+      presentaciones: extra.presentaciones || p.presentaciones,
+      atributosCrudos: extra.atributos || {},
+      atributos: leerAtributos(categoria.id, extra.atributos, configCat)
+    });
+    if (cambios.foto) Object.assign(p, { foto: cambios.foto, rutaFoto: cambios.rutaFoto });
+    pintarProductos();
+    cerrarFormulario();
+    toast(`Producto ${p.codigo} actualizado`);
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "No se pudieron guardar los cambios. Intenta de nuevo.";
+  }
+}
+
+// ---------- descargar imagen ----------
+async function descargar(p) {
+  // Las fotos subidas antes de este botón no tenían el nombre de descarga: se les agrega una vez.
+  if (p.rutaFoto) {
+    await updateMetadata(sRef(storage, p.rutaFoto), { contentDisposition: metadatosFoto(p.codigo).contentDisposition })
+      .catch(() => {});
+  }
+  descargarImagen(p.foto, p.codigo, toast);
+}
 
 // ---------- inhabilitar / borrar ----------
 async function cambiarDisponible(p, check) {
