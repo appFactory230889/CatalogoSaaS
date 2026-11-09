@@ -490,6 +490,8 @@ a.btn, a.categoria { text-decoration: none; }
 
 /* ---------- Panel de administración ---------- */
 .contenido-ancho { max-width: 1120px; }
+.diagnostico { margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: #FFF8F1; border: 1px solid #F8C9A3; color: #7A3E12; font-size: .88rem; font-weight: 600; text-align: left; }
+.diagnostico:empty { display: none; }
 .instrucciones { text-align: left; margin-top: 18px; font-size: .9rem; }
 .instrucciones ol { padding-left: 20px; }
 .instrucciones code { background: #EEF1F7; padding: 1px 6px; border-radius: 6px; word-break: break-all; }

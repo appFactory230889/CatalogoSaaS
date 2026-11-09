@@ -286,11 +286,26 @@ document.querySelectorAll("#filtro-pagos .chip").forEach((b) => b.addEventListen
   pintarPagos();
 }));
 
+/** Explica por qué esta cuenta no tiene acceso (para no adivinar). */
+async function diagnosticar(user, error, valor) {
+  if (error) {
+    return error.code === "PERMISSION_DENIED" || /permission/i.test(error.message || "")
+      ? "Firebase no deja leer admins: las reglas nuevas de la base de datos todavía no están publicadas (o se publicó una versión anterior)."
+      : `Error al leer admins: ${error.message || error}`;
+  }
+  if (valor === "true") return "La clave existe, pero su valor es el TEXTO \"true\". Debe ser el valor verdadero true (sin comillas).";
+  if (valor !== null && valor !== undefined) return `La clave existe, pero su valor es ${JSON.stringify(valor)}. Debe ser true.`;
+  return `No existe la ruta admins/${user.uid} en la RAÍZ de la base de datos. Revisa que "admins" esté al mismo nivel que "negocios" (no dentro de otro nodo) y que el UID sea exactamente este, con la cuenta ${user.email || "actual"}.`;
+}
+
 async function iniciar(user) {
-  const esAdmin = (await get(ref(db, `admins/${user.uid}`)).catch(() => null))?.val() === true;
-  if (!esAdmin) {
+  let valor = null, error = null;
+  try { valor = (await get(ref(db, `admins/${user.uid}`))).val(); }
+  catch (e) { error = e; }
+  if (valor !== true) {
     $("mi-uid").textContent = user.uid;
     $("btn-copiar-uid").onclick = () => navigator.clipboard.writeText(user.uid).then(() => toast("UID copiado"));
+    $("diagnostico").textContent = await diagnosticar(user, error, valor);
     mostrar("sin-acceso");
     return;
   }
