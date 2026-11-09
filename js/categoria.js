@@ -136,7 +136,7 @@ async function iniciar(user) {
   $("cat-icono").textContent = categoria.icono;
   $("cat-icono").style.setProperty("--acento", categoria.color);
   $("cat-nombre").textContent = categoria.nombre;
-  document.title = `${categoria.nombre} · App Factory`;
+  document.title = `${categoria.nombre} · App Factory Catalog`;
   pintarUso();
   const link = linkCatalogo(negocio.codigoCliente, categoria.id);
   $("btn-ver-categoria").href = link;

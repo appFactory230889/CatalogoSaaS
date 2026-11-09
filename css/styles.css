@@ -45,6 +45,13 @@ p { margin: 0; }
 .brand-tag { color: var(--texto-suave); font-size: .85rem; }
 .brand-sm .brand-logo { width: 34px; }
 .brand-sm .brand-name { font-size: 1rem; }
+/* "APP FACTORY / CATALOG" en dos líneas, como el logo */
+.brand-name { line-height: 1.1; }
+.brand-sub {
+  display: block; color: #5F6675; font-weight: 700;
+  font-size: .74em; letter-spacing: .16em; margin-top: 1px;
+}
+.brand-sm .brand-name:has(.brand-sub) { max-width: none; overflow: visible; }
 .brand-sm .brand-name { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40vw; }
 
 /* ---------- Formularios ---------- */

@@ -84,7 +84,7 @@ function prepararCompartir(negocio) {
 async function mostrarPanel(negocio) {
   prepararCompartir(negocio);
   $("saludo").textContent = `Hola, ${negocio.nombre}`;
-  document.title = `${negocio.nombre} · App Factory`;
+  document.title = `${negocio.nombre} · App Factory Catalog`;
   pintarUso(negocio);
   pintarCategorias({});
   mostrarVista("panel");

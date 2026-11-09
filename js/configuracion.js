@@ -194,7 +194,7 @@ async function iniciar(user) {
   uid = user.uid;
   $("cat-icono").textContent = categoria.icono;
   $("cat-nombre").textContent = categoria.nombre;
-  document.title = `Configuración de ${categoria.nombre} · App Factory`;
+  document.title = `Configuración de ${categoria.nombre} · App Factory Catalog`;
   if (espec) {
     config = await asegurarConfigCategoria(uid, categoria.id);
     await contarUso();
